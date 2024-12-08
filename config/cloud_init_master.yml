@@ -1,0 +1,7 @@
+#runcmd:
+#  - microk8s enable dns
+#  - microk8s enable dashboard
+#  - microk8s enable storage
+#  - microk8s status --wait-ready
+
+hostname: ${hostname}

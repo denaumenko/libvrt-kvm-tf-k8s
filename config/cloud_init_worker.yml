@@ -1,0 +1,4 @@
+#runcmd:
+#  - microk8s status --wait-ready
+
+hostname: ${hostname}

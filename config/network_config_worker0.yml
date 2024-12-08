@@ -1,0 +1,10 @@
+version: 2
+ethernets:
+    ens3:
+      addresses: [10.0.0.56/24]
+      routes:
+        - to: default
+          via: 10.0.0.138
+      nameservers:
+          search: []
+          addresses: [8.8.8.8]

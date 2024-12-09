@@ -28,10 +28,16 @@ data "template_file" "user_data_worker" {
 
 
 data "template_file" "network_config_master" {
-  template = file("${path.module}/config/network_config.yml")
+  template = file("${path.module}/config/network_config_master.yml")
+  vars = {
+    ip_addr = var.ip_address_master
+  }
 }
 
 data "template_file" "network_config_worker" {
   count    = var.workers_count
-  template = file("${path.module}/config/network_config_worker${count.index}.yml")
+  template = file("${path.module}/config/network_config_workers.yml")
+  vars = {
+    ip_addr = var.ip_addressees_workers[count.index]
+  }
 }

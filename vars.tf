@@ -1,5 +1,23 @@
 variable "workers_count" {
-  default = 2
+  default = 7
+}
+
+variable "ip_address_master" {
+  description = "The ip address of master node."
+  default     = "10.0.0.55"
+}
+
+variable "ip_addressees_workers" {
+  description = "The list of ip addresses for worker nodes."
+  default = [
+    "10.0.0.56",
+    "10.0.0.57",
+    "10.0.0.58",
+    "10.0.0.59",
+    "10.0.0.60",
+    "10.0.0.61",
+    "10.0.0.62"
+  ]
 }
 
 variable "libvirt_disk_path" {

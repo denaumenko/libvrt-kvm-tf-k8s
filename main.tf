@@ -31,7 +31,7 @@ resource "libvirt_domain" "k8s_master_1" {
 
 resource "libvirt_domain" "k8s_workers" {
   count = var.workers_count
-  name  = "${var.worker_hostname}-${count.index}-terraform"
+  name  = "${var.worker_hostname}-${count.index + 1}-terraform"
 
   memory = var.workers_memory
   vcpu   = var.workers_vcpu

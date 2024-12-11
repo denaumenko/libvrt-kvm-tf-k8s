@@ -68,3 +68,7 @@ variable "workers_volume_size" {
 variable "base_image" {
   default = "http://cloud-images.ubuntu.com/releases/server/noble/release/ubuntu-24.04-server-cloudimg-amd64.img"
 }
+
+variable "microk8s_version" {
+  default = "1.31/stable"
+}

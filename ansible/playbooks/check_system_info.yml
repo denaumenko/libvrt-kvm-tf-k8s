@@ -1,0 +1,12 @@
+---
+- name: Check info from k8s master and workers
+  hosts: microk8s_WORKERS, microk8s_HA
+  tasks:
+
+  - name: Check system information
+    shell:
+      "lsb_release -a"
+    register: os_info
+
+  - debug:
+      msg: "{{os_info.stdout_lines}}"

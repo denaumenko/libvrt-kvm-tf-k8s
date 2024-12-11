@@ -1,5 +1,23 @@
 variable "workers_count" {
-  default = 2
+  default = 7
+}
+
+variable "ip_address_master" {
+  description = "The ip address of master node."
+  default     = "10.0.0.55"
+}
+
+variable "ip_addressees_workers" {
+  description = "The list of ip addresses for worker nodes."
+  default = [
+    "10.0.0.56",
+    "10.0.0.57",
+    "10.0.0.58",
+    "10.0.0.59",
+    "10.0.0.60",
+    "10.0.0.61",
+    "10.0.0.62"
+  ]
 }
 
 variable "libvirt_disk_path" {
@@ -38,15 +56,19 @@ variable "workers_vcpu" {
 }
 
 variable "master_volume_size" {
-  description = "Size of Disk space for master node."
-  default     = 15000000512
+  description = "Size of Disk space for master node in bytes."
+  default     = 53687091200
 }
 
 variable "workers_volume_size" {
-  description = "Size of Disk space for worker nodes."
-  default     = 15000000512
+  description = "Size of Disk space for worker nodes in bytes."
+  default     = 53687091200
 }
 
 variable "base_image" {
   default = "http://cloud-images.ubuntu.com/releases/server/noble/release/ubuntu-24.04-server-cloudimg-amd64.img"
+}
+
+variable "microk8s_version" {
+  default = "1.31/stable"
 }

@@ -1,0 +1,10 @@
+- hosts: all
+  roles:
+    - role: 'istvano.microk8s'
+      vars:
+        microk8s_plugins:
+          dns: "1.1.1.1"
+          ingress: true
+          metrics-server: false
+          cert-manager: true
+          openebs: true

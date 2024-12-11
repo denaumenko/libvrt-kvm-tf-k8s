@@ -28,10 +28,40 @@ data "template_file" "user_data_worker" {
 
 
 data "template_file" "network_config_master" {
-  template = file("${path.module}/config/network_config.yml")
+  template = file("${path.module}/config/network_config_master.yml")
+  vars = {
+    ip_addr = var.ip_address_master
+  }
 }
 
 data "template_file" "network_config_worker" {
   count    = var.workers_count
-  template = file("${path.module}/config/network_config_worker${count.index}.yml")
+  template = file("${path.module}/config/network_config_workers.yml")
+  vars = {
+    ip_addr = var.ip_addressees_workers[count.index]
+  }
+}
+
+data "template_file" "ansible_inventory" {
+  template = <<EOF
+[microk8s_HA]
+master ansible_ssh_host=${var.ip_address_master}
+
+[microk8s_WORKERS]
+%{for i in range(0, length(var.ip_addressees_workers))~}
+k8s-worker-${i + 1} ansible_ssh_host=${var.ip_addressees_workers[i]}
+%{endfor~}
+
+[all:vars]
+ansible_ssh_user=user
+ansible_ssh_private_key_file=${data.local_file.ssh_key.filename}
+microk8s_version=${var.microk8s_version}
+EOF
+}
+
+
+resource "local_file" "ansible_inventory" {
+  depends_on = [data.template_file.ansible_inventory]
+  content    = data.template_file.ansible_inventory.rendered
+  filename   = "ansible/ansible_inventory.ini"
 }

@@ -6,6 +6,7 @@ provider "registry.terraform.io/dmacvicar/libvirt" {
   constraints = "0.8.1"
   hashes = [
     "h1:IKy4tvKIxwGjzvLwVp/gfm9Ce8Iegqx0u3tuPXlwYLM=",
+    "h1:KUGB3qu7THug9hwg+Witf8PInTeMarpT1VnjeHIPE9Y=",
     "h1:PYgdRe26T85VCqUPjCpwWTnq1AN90IlOXf6zMD7rjbk=",
     "h1:zMNA/zoL1CY5Vdj91hkFhI9bddu5wTEdioeKVaTqxss=",
     "zh:126b9c265f5c2c4faf9b6ea6abfd3f86639d6301ba99d11cb87caae65e91eca4",
@@ -29,6 +30,7 @@ provider "registry.terraform.io/hashicorp/local" {
   version = "2.5.2"
   hashes = [
     "h1:6NIiHWMbE9bFZaUiqC+OokdWSbW7g3+yQYnO4yvgtuY=",
+    "h1:6XyefmvbkprppmYbGmMcQW5NB4w6C363SSShzuhF4R0=",
     "h1:JlMZD6nYqJ8sSrFfEAH0Vk/SL8WLZRmFaMUF9PJK5wM=",
     "h1:p99F1AoV9z51aJ4EdItxz/vLwWIyhx/0Iw7L7sWSH1o=",
     "zh:136299545178ce281c56f36965bf91c35407c11897f7082b3b983d86cb79b511",
@@ -50,6 +52,7 @@ provider "registry.terraform.io/hashicorp/template" {
   version = "2.2.0"
   hashes = [
     "h1:0wlehNaxBX7GJQnPfQwTNvvAf38Jm0Nv7ssKGMaG6Og=",
+    "h1:12Bac8B6Aq2+18xe8iqp5iYytav2Bw+jG43z/VaK5zI=",
     "h1:94qn780bi1qjrbC3uQtjJh3Wkfwd5+tTtJHOb7KTg9w=",
     "h1:LN84cu+BZpVRvYlCzrbPfCRDaIelSyEx/W9Iwwgbnn4=",
     "zh:01702196f0a0492ec07917db7aaa595843d8f171dc195f4c988d2ffca2a06386",

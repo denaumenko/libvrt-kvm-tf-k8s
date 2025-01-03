@@ -16,6 +16,7 @@ ssh_pwauth: True
 chpasswd:
   list: |
      root:password
+     user:password
   expire: False
 users:
   - name: user

@@ -11,7 +11,7 @@ resource "libvirt_domain" "k8s_master_1" {
   }
 
   network_interface {
-    network_name = libvirt_network.host_bridge.name # Reference to the "host-bridge" network
+    macvtap = var.network_interface
   }
 
   cloudinit = libvirt_cloudinit_disk.master.id
@@ -43,7 +43,7 @@ resource "libvirt_domain" "k8s_workers" {
   }
 
   network_interface {
-    network_name = libvirt_network.host_bridge.name # Reference to the "host-bridge" network
+    macvtap = var.network_interface
   }
 
   cloudinit = libvirt_cloudinit_disk.worker[count.index].id

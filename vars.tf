@@ -72,3 +72,7 @@ variable "base_image" {
 variable "microk8s_version" {
   default = "1.31/stable"
 }
+
+variable "network_interface" {
+  default = "enp14s0"
+}

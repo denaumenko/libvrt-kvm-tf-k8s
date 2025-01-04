@@ -21,7 +21,7 @@ data "template_file" "user_data_worker" {
   EOF
   vars = {
     ssh_pub_key = data.local_file.ssh_key.content
-    hostname    = "${var.worker_hostname}-${count.index}"
+    hostname    = "${var.worker_hostname}-${count.index+1}"
   }
 }
 

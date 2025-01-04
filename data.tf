@@ -65,3 +65,8 @@ resource "local_file" "ansible_inventory" {
   content    = data.template_file.ansible_inventory.rendered
   filename   = "ansible/ansible_inventory.ini"
 }
+
+
+data "template_file" "gpu_passthrough" {
+  template = file("${path.module}/templates/gpu_passthrough.xsl")
+}

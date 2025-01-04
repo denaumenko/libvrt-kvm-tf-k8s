@@ -76,7 +76,3 @@ variable "microk8s_version" {
 variable "network_interface" {
   default = "enp14s0"
 }
-
-variable "gpu_guid" {
-  default = ""
-}

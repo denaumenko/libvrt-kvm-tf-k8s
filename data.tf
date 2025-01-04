@@ -21,7 +21,7 @@ data "template_file" "user_data_worker" {
   EOF
   vars = {
     ssh_pub_key = data.local_file.ssh_key.content
-    hostname    = "${var.worker_hostname}-${count.index}"
+    hostname    = "${var.worker_hostname}-${count.index+1}"
   }
 }
 
@@ -64,4 +64,9 @@ resource "local_file" "ansible_inventory" {
   depends_on = [data.template_file.ansible_inventory]
   content    = data.template_file.ansible_inventory.rendered
   filename   = "ansible/ansible_inventory.ini"
+}
+
+
+data "template_file" "gpu_passthrough" {
+  template = file("${path.module}/templates/gpu_passthrough.xsl")
 }

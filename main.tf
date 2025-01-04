@@ -59,4 +59,11 @@ resource "libvirt_domain" "k8s_workers" {
     listen_type = "address"
     autoport    = true
   }
+
+  dynamic "xml" {
+    for_each = count.index == var.gpu_node - 1 ? [1] : []
+    content {
+      xslt = data.template_file.gpu_passthrough.rendered
+    }
+  }
 }

@@ -1,12 +1,31 @@
 ---
 - name: Check info from k8s master and workers
   hosts: microk8s_WORKERS, microk8s_HA
+  become: true
   tasks:
 
   - name: Check system information
-    shell:
-      "lsb_release -a"
+    shell: lsb_release -a
     register: os_info
 
   - debug:
-      msg: "{{os_info.stdout_lines}}"
+      msg: "OS Information:\n{{ os_info.stdout_lines | join('\n') }}"
+
+  - name: Install neofetch
+    package:
+      name: neofetch
+      state: present
+      update_cache: yes
+
+  - name: Run neofetch and capture the output
+    shell: neofetch --stdout
+    register: neofetch_info
+    changed_when: false
+
+  - name: Clean the neofetch output by removing ANSI color codes and escape sequences
+    set_fact:
+      clean_neofetch_output: "{{ neofetch_info.stdout | regex_replace('\\x1b\\[[0-9;]*[m|K]', '') }}"
+
+  - name: Display cleaned neofetch output
+    debug:
+      msg: "Neofetch Output:\n{{ clean_neofetch_output }}"

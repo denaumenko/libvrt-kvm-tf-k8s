@@ -1,0 +1,42 @@
+---
+- name: Install GPU driver on the GPU nodes
+  hosts: k8s-worker-7
+  become: yes
+  tasks:
+
+    - name: Update apt repository
+      apt:
+        update_cache: yes
+
+    - name: Install NVIDIA proprietary 535 driver
+      shell: |
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-driver-535 nvidia-dkms-535
+      register: install_result
+      ignore_errors: yes
+
+    - debug:
+        msg: "NVIDIA driver installation output: {{ install_result.stdout_lines }}"
+
+    - name: Reboot the system to apply changes
+      reboot:
+        reboot_timeout: 600  # Wait up to 10 minutes for the system to reboot
+        test_command: uptime  # Test if the system has come back online
+      register: reboot_result
+
+    - name: Wait for the node to become reachable after reboot
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        state: started
+        delay: 10
+        timeout: 300
+
+    - name: Check if NVIDIA driver is installed successfully
+      shell: |
+        nvidia-smi
+      register: nvidia_smi_output
+      failed_when: "'NVIDIA' not in nvidia_smi_output.stdout"
+      changed_when: false
+
+    - debug:
+        msg: "NVIDIA-SMI output: {{ nvidia_smi_output.stdout_lines }}"

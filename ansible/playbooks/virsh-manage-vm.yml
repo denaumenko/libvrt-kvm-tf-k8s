@@ -1,0 +1,28 @@
+---
+- name: Manage local VMs with Virsh
+  hosts: localhost
+  gather_facts: no
+  become: yes
+  vars:
+    action: "start"
+    vm_names:
+      - k8s-master-1-terraform
+      - k8s-worker-1-terraform
+      - k8s-worker-2-terraform
+      - k8s-worker-3-terraform
+      - k8s-worker-4-terraform
+      - k8s-worker-5-terraform
+      - k8s-worker-6-terraform
+      - k8s-worker-7-terraform
+  tasks:
+    - name: Start VMs using Virsh
+      shell: |
+        virsh start {{ item }}
+      loop: "{{ vm_names }}"
+      when: action == "start"
+
+    - name: Shutdown VMs using Virsh
+      shell: |
+        virsh shutdown {{ item }}
+      loop: "{{ vm_names }}"
+      when: action == "shutdown"

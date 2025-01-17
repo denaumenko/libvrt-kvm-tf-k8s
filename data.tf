@@ -45,11 +45,11 @@ data "template_file" "network_config_worker" {
 data "template_file" "ansible_inventory" {
   template = <<EOF
 [microk8s_HA]
-master ansible_ssh_host=${var.ip_address_master}
+k8s-master-1-terraform ansible_ssh_host=${var.ip_address_master}
 
 [microk8s_WORKERS]
 %{for i in range(0, length(var.ip_addressees_workers))~}
-k8s-worker-${i + 1} ansible_ssh_host=${var.ip_addressees_workers[i]}
+k8s-worker-${i + 1}-terraform ansible_ssh_host=${var.ip_addressees_workers[i]}
 %{endfor~}
 
 [all:vars]

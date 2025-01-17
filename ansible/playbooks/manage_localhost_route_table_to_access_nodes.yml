@@ -1,0 +1,43 @@
+---
+- name: Manage IP routes for Wi-Fi interface
+  hosts: localhost
+  gather_facts: no
+  become: yes
+  vars:
+    action: "add"  # Possible values: add, remove
+    metric: 10  # Metric for the routes
+
+  tasks:
+    - name: Extract IPs from inventory groups
+      set_fact:
+        target_ips: >-
+          {{ groups['microk8s_HA'] | map('extract', hostvars, 'ansible_ssh_host') | list +
+             groups['microk8s_WORKERS'] | map('extract', hostvars, 'ansible_ssh_host') | list }}
+
+    - name: Get Wi-Fi interface name
+      shell: >
+        ip link show |
+        grep -Eo '^[0-9]+: (wlp|wlan)[^:]*' |
+        awk '{print $2}'
+      register: wifi_interface_name
+      changed_when: false
+
+    - name: Strip any extra whitespace from Wi-Fi interface name
+      set_fact:
+        clean_wifi_interface_name: "{{ wifi_interface_name.stdout | trim }}"
+
+    - name: Debug the cleaned Wi-Fi interface name (optional)
+      debug:
+        msg: "The detected Wi-Fi interface is: {{ clean_wifi_interface_name }}"
+
+    - name: Manage IP routes based on action
+      when: action == "add"
+      shell: ip route add {{ item }}/32 dev {{ clean_wifi_interface_name }} metric {{ metric }}
+      loop: "{{ target_ips }}"
+      ignore_errors: yes  # Avoid failing if the route already exists
+
+    - name: Manage IP routes based on action
+      when: action == "remove"
+      shell: ip route del {{ item }}/32 dev {{ clean_wifi_interface_name }}
+      loop: "{{ target_ips }}"
+      ignore_errors: yes  # Avoid failing if the route does not exist

@@ -1,5 +1,5 @@
 variable "workers_count" {
-  default = 7
+  default = 4
 }
 
 variable "ip_address_master" {
@@ -13,10 +13,7 @@ variable "ip_addressees_workers" {
     "10.0.0.56",
     "10.0.0.57",
     "10.0.0.58",
-    "10.0.0.59",
-    "10.0.0.60",
-    "10.0.0.61",
-    "10.0.0.62"
+    "10.0.0.59"
   ]
 }
 
@@ -42,27 +39,27 @@ variable "master_memory" {
 
 variable "master_vcpu" {
   description = "Number of CPU cores for master node."
-  default     = 4
+  default     = 6
 }
 
 variable "workers_memory" {
   description = "Size of RAM for worker nodes."
-  default     = 16384
+  default     = 40960
 }
 
 variable "workers_vcpu" {
   description = "Number of CPU cores for worker nodes."
-  default     = 4
+  default     = 6
 }
 
 variable "master_volume_size" {
   description = "Size of Disk space for master node in bytes."
-  default     = 53687091200
+  default     = 107374182400
 }
 
 variable "workers_volume_size" {
   description = "Size of Disk space for worker nodes in bytes."
-  default     = 53687091200
+  default     = 107374182400
 }
 
 variable "base_image" {
@@ -78,5 +75,5 @@ variable "network_interface" {
 }
 
 variable "gpu_node" {
-  default = 7
+  default = 4
 }

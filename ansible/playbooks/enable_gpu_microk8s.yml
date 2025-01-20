@@ -1,6 +1,6 @@
 ---
 - name: Enable GPU addon in MicroK8s
-  hosts: master
+  hosts: "{{ groups['microk8s_HA'][0] }}"
   become: true
   tasks:
     - name: Add NVIDIA Helm repository

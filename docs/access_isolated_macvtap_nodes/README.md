@@ -18,12 +18,12 @@ for a node that is connected to the macvtap interface won't be routed through th
 
 ## Solution
 
-To access a node (e.g., `10.0.0.62`) connected to a macvtap interface from another interface (e.g., `wlp13s0`), 
+To access a node (e.g., `10.0.0.55`) connected to a macvtap interface from another interface (e.g., `wlp13s0`), 
 you need to manually add the correct routes to the route table. You will need to add a specific route for the isolated node. 
-This ensures that any traffic destined for the node (e.g., `10.0.0.62/32`) will be directed through the correct interface (`wlp13s0`), 
+This ensures that any traffic destined for the node (e.g., `10.0.0.55/32`) will be directed through the correct interface (`wlp13s0`), 
 bypassing the isolation caused by the `macvtap` interface.
 
-### Steps to Add Routes
+### Option 1: Steps to Add Routes(Manually)
 
 1. **Open a terminal** window on the host machine where the routes need to be added.
 
@@ -39,3 +39,8 @@ sudo ip route add 10.0.0.60/32 dev wlp13s0 metric 10
 sudo ip route add 10.0.0.61/32 dev wlp13s0 metric 10
 sudo ip route add 10.0.0.62/32 dev wlp13s0 metric 10
 ```
+
+### Option 2: Steps to Add Routes(Automatically via Ansible)
+
+1. Run the `ansible-playbook playbooks/manage_localhost_route_table_to_access_nodes.yml --extra-vars "action=add"  --ask-become-pass` command inside
+`ansible` dir of the root repository.

@@ -1,6 +1,6 @@
 ---
 - name: Install GPU driver on the GPU nodes
-  hosts: k8s-worker-7
+  hosts: "{{ groups['microk8s_WORKERS'][6] }}"
   become: yes
   tasks:
 
@@ -23,13 +23,6 @@
         test_command: uptime  # Test if the system has come back online
       register: reboot_result
 
-    - name: Wait for the node to become reachable after reboot
-      wait_for:
-        host: "{{ inventory_hostname }}"
-        port: 22
-        state: started
-        delay: 10
-        timeout: 300
 
     - name: Check if NVIDIA driver is installed successfully
       shell: |

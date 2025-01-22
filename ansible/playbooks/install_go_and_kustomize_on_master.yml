@@ -1,0 +1,29 @@
+- name: Install Go via Snap on Master Node
+  hosts: microk8s_HA
+  become: true
+  tasks:
+    - name: Install Go via Snap
+      shell: |
+        sudo snap install go --channel={{ go_version }} --classic
+
+    - name: Verify Go Installation
+      shell: |
+        go version
+      register: go_version
+      changed_when: false
+
+    - debug:
+        var: go_version.stdout
+
+    - name: Install Kustomize via Snap
+      shell: |
+        sudo snap install kustomize --channel={{ kustomize_version }} --classic
+
+    - name: Verify Kustomize Installation
+      shell: |
+        snap list kustomize
+      register: kustomize_version
+      changed_when: false
+
+    - debug:
+        var: kustomize_version.stdout

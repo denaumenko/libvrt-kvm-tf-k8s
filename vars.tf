@@ -54,12 +54,12 @@ variable "workers_vcpu" {
 
 variable "master_volume_size" {
   description = "Size of Disk space for master node in bytes."
-  default     = 107374182400
+  default     = 134217728000
 }
 
 variable "workers_volume_size" {
   description = "Size of Disk space for worker nodes in bytes."
-  default     = 107374182400
+  default     = 134217728000
 }
 
 variable "base_image" {

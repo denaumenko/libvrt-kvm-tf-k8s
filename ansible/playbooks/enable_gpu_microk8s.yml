@@ -49,8 +49,8 @@
       shell: |
         microk8s kubectl get pod -n gpu-operator-resources -l app=nvidia-operator-validator -o jsonpath="{.items[0].status.phase}"
       register: pod_status
-      retries: 10
-      delay: 15
+      retries: 20
+      delay: 30
       until: pod_status.stdout == "Running"
 
     - name: Check logs of NVIDIA operator validator
@@ -99,9 +99,9 @@
       shell: |
         microk8s kubectl get pod cuda-vector-add -o jsonpath="{.status.phase}"
       register: cuda_pod_status
-      retries: 10
-      delay: 15
-      until: cuda_pod_status.stdout in ["Succeeded", "Failed"]
+      retries: 20
+      delay: 30
+      until: cuda_pod_status.stdout == "Succeeded"
 
     - name: Check logs of CUDA vector add pod
       shell: microk8s kubectl logs cuda-vector-add

@@ -21,7 +21,4 @@
       shell: kubectl get StorageClass
       register: storage_class
       failed_when: storage_class is failed
-
-    - name: Display StorageClass details
-      debug:
-        var: storage_class
+    - debug: msg="{{ storage_class.stdout }}"

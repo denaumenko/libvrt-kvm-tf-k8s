@@ -10,40 +10,22 @@
     - name: Apply Cert-Manager Base Configuration
       shell: |
         kustomize build manifests/common/cert-manager/base | kubectl apply -f -
+        kustomize build manifests/common/cert-manager/kubeflow-issuer/base | kubectl apply -f -
       register: cert_manager_apply
       changed_when: cert_manager_apply.changed
-
-    - name: Display Apply Cert-Manager Base Configuration
-      debug:
-        var: cert_manager_apply
-
-    - name: Apply Kubeflow Cert-Manager Base Configuration
-      shell: |
-        kustomize build manifests/common/cert-manager/kubeflow-issuer/base | kubectl apply -f -
-      register: kubeflow_issuer_cert_manager_apply
-      changed_when: kubeflow_issuer_cert_manager_apply.changed
-
-    - name: Display Apply Kubeflow Cert-Manager Base Configuration
-      debug:
-        var: kubeflow_issuer_cert_manager_apply
+    - debug: msg="{{ cert_manager_apply.stdout }}"
 
     - name: Wait for Cert-Manager Pods to be Ready
       shell: |
         kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
       register: wait_cert_manager_pods_apply
-
-    - name: Check if Cert-Manager Pods to be Ready
-      debug:
-        var: wait_cert_manager_pods_apply
+    - debug: msg="{{ wait_cert_manager_pods_apply.stdout }}"
 
     - name: Verify Cert-Manager Endpoints
       shell: |
         kubectl wait --for=jsonpath='{.subsets[0].addresses[0].targetRef.kind}'=Pod endpoints -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
       register: verify_cert_manager_endpoints_apply
-
-    - name: Check Cert-Manager Endpoints
-      debug:
-        var: verify_cert_manager_endpoints_apply
+    - debug: msg="{{ verify_cert_manager_endpoints_apply.stdout }}"
 
     - name: Installing Istio configured with external authorization...
       shell: |
@@ -52,55 +34,37 @@
         kustomize build manifests/common/istio-1-24/istio-install/overlays/oauth2-proxy | kubectl apply -f -
       register: istio_install
       changed_when: istio_install.changed
-
-    - name: Display Istio installation with external authorization
-      debug:
-        var: istio_install
+    - debug: msg="{{ istio_install.stdout }}"
 
     - name: Wait for all Istio Pods to become ready
       shell: |
         echo "Waiting for all Istio Pods to become ready..."
         kubectl wait --for=condition=Ready pods --all -n istio-system --timeout 300s
       register: wait_istio_pods
-
-    - name: Check Istio Pods are ready
-      debug:
-        var: wait_istio_pods
+    - debug: msg="{{ wait_istio_pods.stdout }}"
 
     - name: Installing oauth2-proxy...
       shell: |
         kustomize build manifests/common/oauth2-proxy/overlays/m2m-dex-only/ | kubectl apply -f -
       register: oauth2_proxy_install
       changed_when: oauth2_proxy_install.changed
-
-    - name: Display oauth2-proxy installation
-      debug:
-        var: oauth2_proxy_install
+    - debug: msg="{{ oauth2_proxy_install.stdout }}"
 
     - name: Wait for all oauth2-proxy Pods to become ready...
       shell: |
         kubectl wait --for=condition=ready pod -l 'app.kubernetes.io/name=oauth2-proxy' --timeout=180s -n oauth2-proxy
       register: wait_oauth2_proxy_pods
-
-    - name: Check oauth2-proxy Pods are ready
-      debug:
-        var: wait_oauth2_proxy_pods
+    - debug: msg="{{ wait_oauth2_proxy_pods.stdout }}"
 
     - name: Installing Dex...
       shell: |
         kustomize build manifests/common/dex/overlays/oauth2-proxy | kubectl apply -f -
       register: dex_install
       changed_when: dex_install.changed
-
-    - name: Display Dex installation
-      debug:
-        var: dex_install
+    - debug: msg="{{ dex_install.stdout }}"
 
     - name: Wait for all Dex Pods to become ready...
       shell: |
         kubectl wait --for=condition=ready pods --all --timeout=180s -n auth
       register: wait_dex_pods
-
-    - name: Check Dex Pods are ready
-      debug:
-        var: wait_dex_pods
+    - debug: msg="{{ wait_dex_pods.stdout }}"

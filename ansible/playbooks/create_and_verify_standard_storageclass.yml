@@ -14,11 +14,24 @@
         volumeBindingMode: WaitForFirstConsumer
         allowVolumeExpansion: true
         EOF
-      register: create_result
+      register: create_standart_class_result
       ignore_errors: true
 
-    - name: Verify StorageClass creation
+
+    - name: Create local-path-provisioner StorageClass
+      shell: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
+      register: create_local_path_provisioner_result
+      ignore_errors: true
+
+    - name: Verify StorageClasses creation
       shell: kubectl get StorageClass
-      register: storage_class
-      failed_when: storage_class is failed
-    - debug: msg="{{ storage_class.stdout }}"
+      register: check_storage_class
+      failed_when: check_storage_class is failed
+    - debug: msg="{{ check_storage_class.stdout }}"
+
+    - name: Verify local-path-provisioner  creation
+      shell: |
+        kubectl -n local-path-storage get pod
+      register: check_local_path_provisioner_class
+      failed_when: check_local_path_provisioner_class is failed
+    - debug: msg="{{ check_local_path_provisioner_class.stdout }}"

@@ -1,0 +1,217 @@
+---
+- name: Deploy Kubeflow on k8s cluster.
+  hosts: microk8s_HA
+  tasks:
+
+
+    - name: Clone Kubeflow Manifests Repository
+      git:
+        repo: https://github.com/kubeflow/manifests.git
+        dest: /home/{{ ansible_user }}/manifests
+
+
+    - name: Create Kubeflow Namespace, Apply Network Policies, create Kubeflow Roles, Deploy Kubeflow Istio Resources
+      shell: |
+        kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
+        kustomize build manifests/common/networkpolicies/base | kubectl apply -f -
+        kustomize build manifests/common/kubeflow-roles/base | kubectl apply -f -
+        kustomize build manifests/common/istio-1-24/kubeflow-istio-resources/base | kubectl apply -f -
+      register: kubeflow_base_resources_apply
+      changed_when: kubeflow_base_resources_apply.changed
+    - debug: msg="{{ kubeflow_base_resources_apply.stdout | default('No stdout captured') }}"
+
+
+#    - name: Deploy Kubeflow Pipelines
+#      shell: |
+#        kustomize build manifests/apps/pipeline/upstream/env/cert-manager/platform-agnostic-multi-user | kubectl apply -f -
+#      register: kubeflow_pipelines_deploy
+#      changed_when: kubeflow_pipelines_deploy.changed
+#    - debug: msg="{{ kubeflow_pipelines_deploy.stdout | default('No stdout captured') }}"
+
+    - name: Configure PVC for Minio
+      shell: |
+        kubectl apply -f - <<EOF
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: minio-pvc
+          namespace: kubeflow
+          labels:
+            application-crd-id: kubeflow-pipelines
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: |
+              {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"labels":{"application-crd-id":"kubeflow-pipelines"},"name":"minio-pvc","namespace":"kubeflow"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"20Gi"}}}}
+          finalizers:
+            - kubernetes.io/pvc-protection
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+          volumeMode: Filesystem
+          storageClassName: local-path
+        EOF
+      register: configure_minio_pvc_result
+      ignore_errors: true
+    - debug: msg="{{ configure_minio_pvc_result.stdout | default('No stdout captured') }}"
+
+    - name: Configure PVC for MySQL
+      shell: |
+        kubectl apply -f - <<EOF
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: mysql-pv-claim
+          namespace: kubeflow
+          labels:
+            application-crd-id: kubeflow-pipelines
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: |
+              {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"labels":{"application-crd-id":"kubeflow-pipelines"},"name":"mysql-pv-claim","namespace":"kubeflow"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"20Gi"}}}}
+          finalizers:
+            - kubernetes.io/pvc-protection
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+          volumeMode: Filesystem
+          storageClassName: local-path
+        EOF
+      register: configure_my_sql_pvc_result
+      ignore_errors: true
+    - debug: msg="{{ configure_my_sql_pvc_result.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy KServe
+      shell: |
+        kustomize build manifests/contrib/kserve/kserve | kubectl apply --server-side --force-conflicts -f -
+        kustomize build manifests/contrib/kserve/models-web-app/overlays/kubeflow | kubectl apply -f -
+      register: kubeflow_kserve_deploy
+      changed_when: kubeflow_kserve_deploy.changed
+    - debug: msg="{{ kubeflow_kserve_deploy.stdout | default('No stdout captured') }}"
+
+
+#    - name: Deploy Katib
+#      shell: |
+#        kustomize build manifests/apps/katib/upstream/installs/katib-with-kubeflow | kubectl apply -f -
+#      register: kubeflow_katib_deploy
+#      changed_when: kubeflow_katib_deploy.changed
+#    - debug: msg="{{ kubeflow_katib_deploy.stdout | default('No stdout captured') }}"
+
+    - name: Configure PVC for Katib DB manager
+      shell: |
+        kubectl apply -f - <<EOF
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: |
+              {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"katib-mysql","namespace":"kubeflow"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"10Gi"}},"storageClassName":"local-path"}}
+          finalizers:
+          - kubernetes.io/pvc-protection
+          name: katib-mysql
+          namespace: kubeflow
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          volumeMode: Filesystem
+          storageClassName: local-path
+        EOF
+      register: configure_katib_db_manager_pvc_result
+      ignore_errors: true
+
+    - debug:
+        msg: "{{ configure_katib_db_manager_pvc_result.stdout | default('No stdout captured') }}"
+
+
+
+    - name: Deploy Central Dashboard
+      shell: |
+        kustomize build manifests/apps/centraldashboard/overlays/oauth2-proxy | kubectl apply -f -
+      register: kubeflow_ui_deploy
+      changed_when: kubeflow_ui_deploy.changed
+    - debug: msg="{{ kubeflow_ui_deploy.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy Admission Webhook
+      shell: |
+        kustomize build manifests/apps/admission-webhook/upstream/overlays/cert-manager | kubectl apply -f -
+      register: kubeflow_admission_webhook_deploy
+      changed_when: kubeflow_admission_webhook_deploy.changed
+    - debug: msg="{{ kubeflow_admission_webhook_deploy.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy Notebook Controller and Jupyter Web App official Kubeflow components
+      shell: |
+        kustomize build manifests/apps/jupyter/notebook-controller/upstream/overlays/kubeflow | kubectl apply -f -
+        kustomize build manifests/apps/jupyter/jupyter-web-app/upstream/overlays/istio | kubectl apply -f -
+      register: kubeflow_notebook_controller_deploy
+      changed_when: kubeflow_notebook_controller_deploy.changed
+    - debug: msg="{{ kubeflow_notebook_controller_deploy.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy PVC Viewer Controller
+      shell: |
+        kustomize build manifests/apps/pvcviewer-controller/upstream/base | kubectl apply -f -
+      register: kubeflow_pvc_viewer_deploy
+      changed_when: kubeflow_pvc_viewer_deploy.changed
+    - debug: msg="{{ kubeflow_pvc_viewer_deploy.stdout | default('No stdout captured') }}"
+
+    - name: Deploy Profiles + KFAM
+      shell: |
+        kustomize build manifests/apps/profiles/upstream/overlays/kubeflow | kubectl apply -f -
+      register: kubeflow_profiles_kfam_deploy
+      changed_when: kubeflow_profiles_kfam_deploy.changed
+    - debug: msg="{{ kubeflow_profiles_kfam_deploy.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy Volumes Web Application
+      shell: |
+        kustomize build manifests/apps/volumes-web-app/upstream/overlays/istio | kubectl apply -f -
+      register: kubeflow_volumes_webapp_deploy
+      changed_when: kubeflow_volumes_webapp_deploy.changed
+    - debug: msg="{{ kubeflow_volumes_webapp_deploy.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy Tensorboard Web App and Tensorboard Controller
+      shell: |
+        kustomize build manifests/apps/tensorboard/tensorboards-web-app/upstream/overlays/istio | kubectl apply -f -
+        kustomize build manifests/apps/tensorboard/tensorboard-controller/upstream/overlays/kubeflow | kubectl apply -f -
+      register: kubeflow_tensorboard_deploy
+      changed_when: kubeflow_tensorboard_deploy.changed
+    - debug: msg="{{ kubeflow_tensorboard_deploy.stdout | default('No stdout captured') }}"
+
+
+    - name: Deploy Training Operator
+      shell: |
+        kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply --server-side --force-conflicts -f -
+      register: kubeflow_training_operator_deploy
+      changed_when: kubeflow_training_operator_deploy.changed
+    - debug: msg="{{ kubeflow_training_operator_deploy.stdout | default('No stdout captured') }}"
+
+    - name: Create a new namespace for the default user
+      shell: |
+        kustomize build manifests/common/user-namespace/base | kubectl apply -f -
+      register: create_default_user_namespace
+      changed_when: create_default_user_namespace.changed
+    - debug: msg="{{ create_default_user_namespace.stdout | default('No stdout captured') }}"
+
+
+    - name: Verify all Kubeflow-related Pods are ready
+      shell: |
+        kubectl get pods -n cert-manager
+        kubectl get pods -n istio-system
+        kubectl get pods -n auth
+        kubectl get pods -n knative-eventing
+        kubectl get pods -n knative-serving
+        kubectl get pods -n kubeflow
+        kubectl get pods -n kubeflow-user-example-com
+      register: verify_kubeflow_pods_after_installation
+      failed_when: verify_kubeflow_pods_after_installation is failed
+    - debug: msg="{{ verify_kubeflow_pods_after_installation.stdout }}"

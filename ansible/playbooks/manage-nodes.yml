@@ -7,9 +7,15 @@
 
   tasks:
     - name: Shutdown the system
-      shell: /sbin/shutdown -h now
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          /sbin/shutdown -h now
       when: action == "shutdown"
 
     - name: Reboot the system
-      shell: /sbin/reboot
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          /sbin/reboot
       when: action == "restart"

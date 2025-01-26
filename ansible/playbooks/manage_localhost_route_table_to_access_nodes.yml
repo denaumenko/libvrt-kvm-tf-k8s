@@ -15,10 +15,12 @@
              groups['microk8s_WORKERS'] | map('extract', hostvars, 'ansible_ssh_host') | list }}
 
     - name: Get Wi-Fi interface name
-      shell: >
-        ip link show |
-        grep -Eo '^[0-9]+: (wlp|wlan)[^:]*' |
-        awk '{print $2}'
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          ip link show |
+          grep -Eo '^[0-9]+: (wlp|wlan)[^:]*' |
+          awk '{print $2}'
       register: wifi_interface_name
       changed_when: false
 
@@ -32,12 +34,18 @@
 
     - name: Manage IP routes based on action
       when: action == "add"
-      shell: ip route add {{ item }}/32 dev {{ clean_wifi_interface_name }} metric {{ metric }}
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          ip route add {{ item }}/32 dev {{ clean_wifi_interface_name }} metric {{ metric }}
       loop: "{{ target_ips }}"
       ignore_errors: yes  # Avoid failing if the route already exists
 
     - name: Manage IP routes based on action
       when: action == "remove"
-      shell: ip route del {{ item }}/32 dev {{ clean_wifi_interface_name }}
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          ip route del {{ item }}/32 dev {{ clean_wifi_interface_name }}
       loop: "{{ target_ips }}"
       ignore_errors: yes  # Avoid failing if the route does not exist

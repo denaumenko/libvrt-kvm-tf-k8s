@@ -12,11 +12,17 @@
         vm_names: "{{ groups['microk8s_WORKERS'] + groups['microk8s_HA'] }}"
 
     - name: Start VMs using virsh
-      shell: virsh start {{ item }}
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          virsh start {{ item }}
       loop: "{{ vm_names }}"
       when: action == "start"
 
     - name: Shutdown VMs using virsh
-      shell: virsh shutdown {{ item }}
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          virsh shutdown {{ item }}
       loop: "{{ vm_names }}"
       when: action == "shutdown"

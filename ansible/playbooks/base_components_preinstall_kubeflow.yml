@@ -134,6 +134,7 @@
       when: resolved_action in ["knative", "all"]
       ansible.builtin.shell:
         cmd: |
+          set -o pipefail
           kustomize build manifests/common/knative/knative-serving/overlays/gateways | kubectl apply -f -
           kustomize build manifests/common/istio-1-24/cluster-local-gateway/base | kubectl apply -f -
       register: knative_install

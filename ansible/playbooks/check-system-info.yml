@@ -5,27 +5,32 @@
   tasks:
 
   - name: Check system information
-    shell: lsb_release -a
+    ansible.builtin.shell: |
+      set -o pipefail
+      lsb_release -a
     register: os_info
 
-  - debug:
+  - name: Display OS information
+    ansible.builtin.debug:
       msg: "OS Information:\n{{ os_info.stdout_lines | join('\n') }}"
 
   - name: Install neofetch
-    package:
+    ansible.builtin.package:
       name: neofetch
       state: present
       update_cache: yes
 
   - name: Run neofetch and capture the output
-    shell: neofetch --stdout
+    ansible.builtin.shell: |
+      set -o pipefail
+      neofetch --stdout
     register: neofetch_info
     changed_when: false
 
   - name: Clean the neofetch output by removing ANSI color codes and escape sequences
-    set_fact:
+    ansible.builtin.set_fact:
       clean_neofetch_output: "{{ neofetch_info.stdout | regex_replace('\\x1b\\[[0-9;]*[m|K]', '') }}"
 
   - name: Display cleaned neofetch output
-    debug:
+    ansible.builtin.debug:
       msg: "Neofetch Output:\n{{ clean_neofetch_output }}"

@@ -1,0 +1,4 @@
+# This file contains ignores rule violations for ansible-lint
+playbooks/enable_gpu_microk8s.yml syntax-check[specific]
+playbooks/gpu-driver-install.yml syntax-check[specific]
+playbooks/microk8s-install.yml syntax-check[specific]

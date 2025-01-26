@@ -28,7 +28,8 @@
         cmd: |
           mkcert kubeflow.127.0.0.1.nip.io
       register: generate_mkcert
-    - debug: msg="{{ generate_mkcert.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ generate_mkcert.stdout | default('No stdout captured') }}"
 
 
     - name: Create Default Kubernetes TLS secret
@@ -39,7 +40,8 @@
           --cert kubeflow.127.0.0.1.nip.io.pem \
           -n istio-system
       register: create_tls_secret
-    - debug: msg="{{ create_tls_secret.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ create_tls_secret.stdout | default('No stdout captured') }}"
 
 
     - name: Patch Istio IngressGateway service type to NodePort
@@ -49,11 +51,12 @@
       become: yes
       become_user: root
       register: patch_istio_ingressgateway
-    - debug: msg="{{ patch_istio_ingressgateway.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ patch_istio_ingressgateway.stdout | default('No stdout captured') }}"
 
 
     - name: Apply Default Kubeflow ingress
-      copy:
+      ansible.builtin.copy:
         content: |
           apiVersion: networking.k8s.io/v1
           kind: Ingress
@@ -87,7 +90,8 @@
         cmd: |
           kubectl apply -f /tmp/kubeflow-ingress.yaml
       register: apply_default_kubeflow_ingress
-    - debug: msg="{{ apply_default_kubeflow_ingress.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ apply_default_kubeflow_ingress.stdout | default('No stdout captured') }}"
 
 
     - name: Verify if ingress is reachable using curl
@@ -101,12 +105,12 @@
       ignore_errors: yes
 
     - name: Output result of ingress verification
-      debug:
+      ansible.builtin.debug:
         msg: "Ingress is working correctly!"
       when: curl_result.stdout in ['200', '403']
 
     - name: Output result of failed verification
-      debug:
+      ansible.builtin.debug:
         msg: "Ingress is not working correctly."
       when: curl_result.stdout not in ['200', '403']
 
@@ -116,14 +120,16 @@
         cmd: |
           mkcert kubeflow.{{ master_ip }}.nip.io
       register: generate_custom_mkcert
-    - debug: msg="{{ generate_custom_mkcert.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ generate_custom_mkcert.stdout | default('No stdout captured') }}"
 
     - name: Delete default Kubernetes TLS secret
       ansible.builtin.shell:
         cmd: |
           kubectl delete secret kubeflow-tls  -n istio-system
       register: delete_default_tls_secret
-    - debug: msg="{{ delete_default_tls_secret.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ delete_default_tls_secret.stdout | default('No stdout captured') }}"
 
 
     - name: Create Custom Kubernetes TLS secret
@@ -134,7 +140,8 @@
           --cert kubeflow.{{ master_ip }}.nip.io.pem \
           -n istio-system
       register: create_custom_tls_secret
-    - debug: msg="{{ create_custom_tls_secret.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ create_custom_tls_secret.stdout | default('No stdout captured') }}"
 
 
     - name: Apply Custom Kubeflow ingress
@@ -172,7 +179,8 @@
         cmd: |
           kubectl apply -f /tmp/kubeflow-ingress_custom.yaml
       register: apply_custom_kubeflow_ingress
-    - debug: msg="{{ apply_custom_kubeflow_ingress.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ apply_custom_kubeflow_ingress.stdout | default('No stdout captured') }}"
 
 
     - name: Verify if ingress is reachable using curl
@@ -186,11 +194,11 @@
       ignore_errors: yes
 
     - name: Output result of ingress verification
-      debug:
+      ansible.builtin.debug:
         msg: "Ingress is working correctly!"
       when: curl_result.stdout in ['200', '403']
 
     - name: Output result of failed verification
-      debug:
+      ansible.builtin.debug:
         msg: "Ingress is not working correctly."
       when: curl_result.stdout not in ['200', '403']

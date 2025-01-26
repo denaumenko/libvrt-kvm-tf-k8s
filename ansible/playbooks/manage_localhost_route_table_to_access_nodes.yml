@@ -9,7 +9,7 @@
 
   tasks:
     - name: Extract IPs from inventory groups
-      set_fact:
+      ansible.builtin.set_fact:
         target_ips: >-
           {{ groups['microk8s_HA'] | map('extract', hostvars, 'ansible_ssh_host') | list +
              groups['microk8s_WORKERS'] | map('extract', hostvars, 'ansible_ssh_host') | list }}
@@ -23,7 +23,7 @@
       changed_when: false
 
     - name: Strip any extra whitespace from Wi-Fi interface name
-      set_fact:
+      ansible.builtin.set_fact:
         clean_wifi_interface_name: "{{ wifi_interface_name.stdout | trim }}"
 
     - name: Debug the cleaned Wi-Fi interface name (optional)

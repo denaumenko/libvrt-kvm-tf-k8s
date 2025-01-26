@@ -5,17 +5,21 @@
 
 
     - name: Install mkcert
-      command: sudo apt install mkcert -y
+      ansible.builtin.apt:
+        name: mkcert
+        state: present
+        update_cache: yes
+
 
 
     - name: Extract IPs from inventory groups
-      set_fact:
+      ansible.builtin.set_fact:
         target_ips: >-
-          {{ groups['microk8s_HA'] | map('extract', hostvars, 'ansible_ssh_host')}}
+          {{ groups['microk8s_HA'] | map('extract', hostvars, 'ansible_ssh_host') }}
 
 
     - name: Set master IP
-      set_fact:
+      ansible.builtin.set_fact:
         master_ip: "{{ target_ips[0] }}"
 
 

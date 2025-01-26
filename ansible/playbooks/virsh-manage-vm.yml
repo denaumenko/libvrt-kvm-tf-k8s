@@ -8,7 +8,7 @@
 
   tasks:
     - name: Gather VM names from inventory
-      set_fact:
+      ansible.builtin.set_fact:
         vm_names: "{{ groups['microk8s_WORKERS'] + groups['microk8s_HA'] }}"
 
     - name: Start VMs using virsh

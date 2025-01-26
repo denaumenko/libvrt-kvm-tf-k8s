@@ -1,6 +1,6 @@
 ---
 - name: Install GPU driver on the GPU nodes
-  hosts: "{{ groups['microk8s_WORKERS'][3] }}"
+  hosts: "{{ groups['microk8s_WORKERS'][3] }}" # noqa: ignore-errors ansible-lint[undefined-variable]
   become: yes
   tasks:
 

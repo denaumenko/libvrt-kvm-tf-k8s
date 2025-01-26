@@ -1,6 +1,6 @@
 ---
 - name: Enable GPU addon in MicroK8s
-  hosts: "{{ groups['microk8s_HA'][0] }}"
+  hosts: "{{ groups['microk8s_HA'][0] }}" # noqa: ignore-errors ansible-lint[undefined-variable]
   become: true
   tasks:
     - name: Add NVIDIA Helm repository

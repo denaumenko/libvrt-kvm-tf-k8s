@@ -12,9 +12,10 @@
 
     - name: Apply Cert-Manager Base Configuration
       when: resolved_action in ["cert-manager", "all"]
-      ansible.builtin.shell: |
-        kustomize build manifests/common/cert-manager/base | kubectl apply -f -
-        kustomize build manifests/common/cert-manager/kubeflow-issuer/base | kubectl apply -f -
+      ansible.builtin.shell:
+        cmd: |
+          kustomize build manifests/common/cert-manager/base
+          kustomize build manifests/common/cert-manager/kubeflow-issuer/base
       register: cert_manager_apply
       changed_when: cert_manager_apply.changed
       failed_when: cert_manager_apply.rc != 0
@@ -24,8 +25,9 @@
 
     - name: Wait for Cert-Manager Pods to be Ready
       when: resolved_action in ["cert-manager", "all"]
-      ansible.builtin.shell: |
-        kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
       register: wait_cert_manager_pods_apply
       failed_when: wait_cert_manager_pods_apply.rc != 0
 

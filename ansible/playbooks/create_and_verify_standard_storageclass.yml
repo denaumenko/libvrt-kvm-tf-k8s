@@ -2,20 +2,20 @@
 - name: Create and Verify StorageClass on Kubernetes Master
   hosts: microk8s_HA
   tasks:
-    - name: Create StorageClass
-      shell: |
-        microk8s kubectl apply -f - <<EOF
-        apiVersion: storage.k8s.io/v1
-        kind: StorageClass
-        metadata:
-          name: standard
-        provisioner: kubernetes.io/no-provisioner
-        reclaimPolicy: Retain
-        volumeBindingMode: WaitForFirstConsumer
-        allowVolumeExpansion: true
-        EOF
-      register: create_standart_class_result
-      ignore_errors: true
+#    - name: Create StorageClass
+#      shell: |
+#        microk8s kubectl apply -f - <<EOF
+#        apiVersion: storage.k8s.io/v1
+#        kind: StorageClass
+#        metadata:
+#          name: standard
+#        provisioner: kubernetes.io/no-provisioner
+#        reclaimPolicy: Retain
+#        volumeBindingMode: WaitForFirstConsumer
+#        allowVolumeExpansion: true
+#        EOF
+#      register: create_standart_class_result
+#      ignore_errors: true
 
 
     - name: Create local-path-provisioner StorageClass
@@ -23,15 +23,16 @@
       register: create_local_path_provisioner_result
       ignore_errors: true
 
-    - name: Verify StorageClasses creation
-      shell: kubectl get StorageClass
-      register: check_storage_class
-      failed_when: check_storage_class is failed
-    - debug: msg="{{ check_storage_class.stdout }}"
+#    - name: Verify StorageClasses creation
+#      shell: kubectl get StorageClass
+#      register: check_storage_class
+#      failed_when: check_storage_class is failed
+#    - debug: msg="{{ check_storage_class.stdout }}"
 
     - name: Verify local-path-provisioner  creation
       shell: |
         kubectl -n local-path-storage get pod
+        kubectl get StorageClass
       register: check_local_path_provisioner_class
       failed_when: check_local_path_provisioner_class is failed
     - debug: msg="{{ check_local_path_provisioner_class.stdout }}"

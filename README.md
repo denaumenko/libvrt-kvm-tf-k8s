@@ -12,5 +12,6 @@
 8. ansible-playbook playbooks/enable_gpu_microk8s.yml   --ask-become-pass -i ansible_inventory.ini
 9. ansible-playbook playbooks/install_go_and_kustomize_on_master.yml   --ask-become-pass -i ansible_inventory.ini
 10. ansible-playbook playbooks/create_and_verify_standard_storageclass.yml   --ask-become-pass -i ansible_inventory.ini
-11.  ansible-playbook playbooks/base_components_preinstall_kubeflow.yml   --ask-become-pass -i ansible_inventory.ini
-
+11. ansible-playbook playbooks/base_components_preinstall_kubeflow.yml   --ask-become-pass -i ansible_inventory.ini
+12. ansible-playbook playbooks/kubeflow_install.yml --ask-become-pass
+13. ansible-playbook playbooks/deploy_kubeflow_ingress.yml   --ask-become-pass -i ansible_inventory.ini

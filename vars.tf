@@ -70,6 +70,14 @@ variable "microk8s_version" {
   default = "1.31/stable"
 }
 
+variable "go_version" {
+  default = "1.23/stable"
+}
+
+variable "kustomize_version" {
+  default = "latest/stable"
+}
+
 variable "network_interface" {
   default = "enp14s0"
 }

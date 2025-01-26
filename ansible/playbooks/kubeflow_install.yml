@@ -21,12 +21,12 @@
     - debug: msg="{{ kubeflow_base_resources_apply.stdout | default('No stdout captured') }}"
 
 
-#    - name: Deploy Kubeflow Pipelines
-#      shell: |
-#        kustomize build manifests/apps/pipeline/upstream/env/cert-manager/platform-agnostic-multi-user | kubectl apply -f -
-#      register: kubeflow_pipelines_deploy
-#      changed_when: kubeflow_pipelines_deploy.changed
-#    - debug: msg="{{ kubeflow_pipelines_deploy.stdout | default('No stdout captured') }}"
+    - name: Deploy Kubeflow Pipelines
+      shell: |
+        kustomize build manifests/apps/pipeline/upstream/env/cert-manager/platform-agnostic-multi-user | kubectl apply -f -
+      register: kubeflow_pipelines_deploy
+      changed_when: kubeflow_pipelines_deploy.changed
+    - debug: msg="{{ kubeflow_pipelines_deploy.stdout | default('No stdout captured') }}"
 
     - name: Configure PVC for Minio
       shell: |
@@ -94,12 +94,12 @@
     - debug: msg="{{ kubeflow_kserve_deploy.stdout | default('No stdout captured') }}"
 
 
-#    - name: Deploy Katib
-#      shell: |
-#        kustomize build manifests/apps/katib/upstream/installs/katib-with-kubeflow | kubectl apply -f -
-#      register: kubeflow_katib_deploy
-#      changed_when: kubeflow_katib_deploy.changed
-#    - debug: msg="{{ kubeflow_katib_deploy.stdout | default('No stdout captured') }}"
+    - name: Deploy Katib
+      shell: |
+        kustomize build manifests/apps/katib/upstream/installs/katib-with-kubeflow | kubectl apply -f -
+      register: kubeflow_katib_deploy
+      changed_when: kubeflow_katib_deploy.changed
+    - debug: msg="{{ kubeflow_katib_deploy.stdout | default('No stdout captured') }}"
 
     - name: Configure PVC for Katib DB manager
       shell: |

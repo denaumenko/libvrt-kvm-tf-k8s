@@ -1,0 +1,177 @@
+---
+- name: Setup Kubeflow Ingress with TLS
+  hosts: microk8s_HA
+  tasks:
+
+
+    - name: Install mkcert
+      command: sudo apt install mkcert -y
+
+
+    - name: Extract IPs from inventory groups
+      set_fact:
+        target_ips: >-
+          {{ groups['microk8s_HA'] | map('extract', hostvars, 'ansible_ssh_host')}}
+
+
+    - name: Set master IP
+      set_fact:
+        master_ip: "{{ target_ips[0] }}"
+
+
+    - name: Generate Default TLS certificate using mkcert
+      command: mkcert kubeflow.127.0.0.1.nip.io
+      register: generate_mkcert
+    - debug: msg="{{ generate_mkcert.stdout | default('No stdout captured') }}"
+
+
+    - name: Create Default Kubernetes TLS secret
+      command: >
+        kubectl create secret tls kubeflow-tls \
+        --key kubeflow.127.0.0.1.nip.io-key.pem \
+        --cert kubeflow.127.0.0.1.nip.io.pem \
+        -n istio-system
+      register: create_tls_secret
+    - debug: msg="{{ create_tls_secret.stdout | default('No stdout captured') }}"
+
+
+    - name: Patch Istio IngressGateway service type to NodePort
+      command: >
+        kubectl patch svc istio-ingressgateway -n istio-system --type='json' -p '[{"op": "replace", "path": "/spec/type", "value": "NodePort"}]'
+      become: yes
+      become_user: root
+      register: patch_istio_ingressgateway
+    - debug: msg="{{ patch_istio_ingressgateway.stdout | default('No stdout captured') }}"
+
+
+    - name: Apply Default Kubeflow ingress
+      copy:
+        content: |
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: kubeflow-ingress
+            namespace: istio-system
+            annotations:
+              traefik.ingress.kubernetes.io/ssl-redirect: "true"
+          spec:
+            ingressClassName: public
+            rules:
+            - host: kubeflow.127.0.0.1.nip.io
+              http:
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: istio-ingressgateway
+                        port:
+                          number: 80
+            tls:
+            - hosts:
+              - kubeflow.127.0.0.1.nip.io
+              secretName: kubeflow-tls
+        dest: /tmp/kubeflow-ingress.yaml
+
+
+    - name: Apply the default Ingress manifest
+      command: kubectl apply -f /tmp/kubeflow-ingress.yaml
+      register: apply_default_kubeflow_ingress
+    - debug: msg="{{ apply_default_kubeflow_ingress.stdout | default('No stdout captured') }}"
+
+
+    - name: Verify if ingress is reachable using curl
+      shell: "curl -k -s -o /dev/null -w '%{http_code}' https://kubeflow.127.0.0.1.nip.io"
+      register: curl_result
+      retries: 5
+      delay: 10
+      until: curl_result.stdout in ['200', '403']
+      ignore_errors: yes
+
+    - name: Output result of ingress verification
+      debug:
+        msg: "Ingress is working correctly!"
+      when: curl_result.stdout in ['200', '403']
+
+    - name: Output result of failed verification
+      debug:
+        msg: "Ingress is not working correctly."
+      when: curl_result.stdout not in ['200', '403']
+
+
+    - name: Generate Custom TLS certificate using mkcert
+      command: mkcert kubeflow.{{ master_ip }}.nip.io
+      register: generate_custom_mkcert
+    - debug: msg="{{ generate_custom_mkcert.stdout | default('No stdout captured') }}"
+
+    - name: Delete default Kubernetes TLS secret
+      command: >
+        kubectl delete secret kubeflow-tls  -n istio-system
+      register: delete_default_tls_secret
+    - debug: msg="{{ delete_default_tls_secret.stdout | default('No stdout captured') }}"
+
+
+    - name: Create Custom Kubernetes TLS secret
+      command: >
+        kubectl create secret tls kubeflow-tls \
+        --key kubeflow.{{ master_ip }}.nip.io-key.pem \
+        --cert kubeflow.{{ master_ip }}.nip.io.pem \
+        -n istio-system
+      register: create_custom_tls_secret
+    - debug: msg="{{ create_custom_tls_secret.stdout | default('No stdout captured') }}"
+
+
+    - name: Apply Custom Kubeflow ingress
+      copy:
+        content: |
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: kubeflow-ingress
+            namespace: istio-system
+            annotations:
+              traefik.ingress.kubernetes.io/ssl-redirect: "true"
+          spec:
+            ingressClassName: public
+            rules:
+            - host: kubeflow.{{ master_ip }}.nip.io
+              http:
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: istio-ingressgateway
+                        port:
+                          number: 80
+            tls:
+            - hosts:
+              - kubeflow.{{ master_ip }}.nip.io
+              secretName: kubeflow-tls
+        dest: /tmp/kubeflow-ingress_custom.yaml
+
+
+    - name: Apply the custom Ingress manifest
+      command: kubectl apply -f /tmp/kubeflow-ingress_custom.yaml
+      register: apply_custom_kubeflow_ingress
+    - debug: msg="{{ apply_custom_kubeflow_ingress.stdout | default('No stdout captured') }}"
+
+
+    - name: Verify if ingress is reachable using curl
+      command: >
+        curl -k -s -o /dev/null -w '%{http_code}' https://kubeflow.{{ master_ip }}.nip.io
+      register: curl_result
+      retries: 5
+      delay: 10
+      until: curl_result.stdout in ['200', '403']
+      ignore_errors: yes
+
+    - name: Output result of ingress verification
+      debug:
+        msg: "Ingress is working correctly!"
+      when: curl_result.stdout in ['200', '403']
+
+    - name: Output result of failed verification
+      debug:
+        msg: "Ingress is not working correctly."
+      when: curl_result.stdout not in ['200', '403']

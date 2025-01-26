@@ -56,6 +56,8 @@ k8s-worker-${i + 1}-terraform ansible_ssh_host=${var.ip_addressees_workers[i]}
 ansible_ssh_user=user
 ansible_ssh_private_key_file=${data.local_file.ssh_key.filename}
 microk8s_version=${var.microk8s_version}
+go_version=${var.go_version}
+kustomize_version=${var.kustomize_version}
 EOF
 }
 

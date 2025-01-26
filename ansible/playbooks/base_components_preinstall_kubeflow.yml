@@ -36,8 +36,9 @@
 
     - name: Verify Cert-Manager Endpoints
       when: resolved_action in ["cert-manager", "all"]
-      ansible.builtin.shell: |
-        kubectl wait --for=jsonpath='{.subsets[0].addresses[0].targetRef.kind}'=Pod endpoints -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=jsonpath='{.subsets[0].addresses[0].targetRef.kind}'=Pod endpoints -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
       register: verify_cert_manager_endpoints_apply
       failed_when: verify_cert_manager_endpoints_apply.rc != 0
 
@@ -70,8 +71,9 @@
 
     - name: Installing oauth2-proxy...
       when: resolved_action in ["oauth2", "all"]
-      ansible.builtin.shell: |
-        kustomize build manifests/common/oauth2-proxy/overlays/m2m-dex-only/ | kubectl apply -f -
+      ansible.builtin.shell:
+        cmd: |
+          kustomize build manifests/common/oauth2-proxy/overlays/m2m-dex-only/ | kubectl apply -f -
       register: oauth2_proxy_install
       changed_when: oauth2_proxy_install.changed
       failed_when: oauth2_proxy_install.rc != 0
@@ -81,8 +83,9 @@
 
     - name: Wait for all oauth2-proxy Pods to become ready...
       when: resolved_action in ["oauth2", "all"]
-      ansible.builtin.shell: |
-        kubectl wait --for=condition=ready pod -l 'app.kubernetes.io/name=oauth2-proxy' --timeout=180s -n oauth2-proxy
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=condition=ready pod -l 'app.kubernetes.io/name=oauth2-proxy' --timeout=180s -n oauth2-proxy
       register: wait_oauth2_proxy_pods
       failed_when: wait_oauth2_proxy_pods.rc != 0
 
@@ -112,9 +115,10 @@
 
     - name: Installing Knative...
       when: resolved_action in ["knative", "all"]
-      ansible.builtin.shell: |
-        kustomize build manifests/common/knative/knative-serving/overlays/gateways | kubectl apply -f -
-        kustomize build manifests/common/istio-1-24/cluster-local-gateway/base | kubectl apply -f -
+      ansible.builtin.shell:
+        cmd: |
+          kustomize build manifests/common/knative/knative-serving/overlays/gateways | kubectl apply -f -
+          kustomize build manifests/common/istio-1-24/cluster-local-gateway/base | kubectl apply -f -
       register: knative_install
       changed_when: knative_install.changed
       failed_when: knative_install.rc != 0

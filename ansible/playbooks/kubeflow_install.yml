@@ -28,6 +28,17 @@
       changed_when: kubeflow_pipelines_deploy.changed
     - debug: msg="{{ kubeflow_pipelines_deploy.stdout | default('No stdout captured') }}"
 
+
+    - name: Patch Kubeflow Pipelines(Disable GKE METADATA)
+      command: >
+        kubectl set env deployment/ml-pipeline-ui DISABLE_GKE_METADATA=true -n kubeflow
+        kubectl rollout restart deployment ml-pipeline-ui -n kubeflow
+      become: yes
+      become_user: root
+      register: patch_kfp
+    - debug: msg="{{ patch_kfp.stdout | default('No stdout captured') }}"
+
+
     - name: Configure PVC for Minio
       shell: |
         kubectl apply -f - <<EOF

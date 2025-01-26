@@ -15,3 +15,4 @@
 11. ansible-playbook playbooks/base_components_preinstall_kubeflow.yml   --ask-become-pass -i ansible_inventory.ini
 12. ansible-playbook playbooks/kubeflow_install.yml --ask-become-pass
 13. ansible-playbook playbooks/deploy_kubeflow_ingress.yml   --ask-become-pass -i ansible_inventory.ini
+14. ansible-playbook playbooks/deploy_kubeflow_ingress.yml --ask-become-pass

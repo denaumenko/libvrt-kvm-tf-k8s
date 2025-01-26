@@ -3,7 +3,7 @@
   hosts: microk8s_WORKERS, microk8s_HA
   become: yes
   vars:
-    action: "restart"
+    node_action: "restart"
 
   tasks:
     - name: Shutdown the system
@@ -11,11 +11,11 @@
         cmd: |
           set -o pipefail
           /sbin/shutdown -h now
-      when: action == "shutdown"
+      when: node_action == "shutdown"
 
     - name: Reboot the system
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
           /sbin/reboot
-      when: action == "restart"
+      when: node_action == "restart"

@@ -4,8 +4,8 @@
   gather_facts: no
   become: yes
   vars:
-    action: "add"  # Possible values: add, remove
-    metric: 10  # Metric for the routes
+    node_action: "add"
+    metric: 10
 
   tasks:
     - name: Extract IPs from inventory groups
@@ -32,8 +32,8 @@
       ansible.builtin.debug:
         msg: "The detected Wi-Fi interface is: {{ clean_wifi_interface_name }}"
 
-    - name: Manage IP routes based on action
-      when: action == "add"
+    - name: Manage IP routes based on node_action
+      when: node_action == "add"
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -41,8 +41,8 @@
       loop: "{{ target_ips }}"
       ignore_errors: yes  # Avoid failing if the route already exists
 
-    - name: Manage IP routes based on action
-      when: action == "remove"
+    - name: Manage IP routes based on node_action
+      when: node_action == "remove"
       ansible.builtin.shell:
         cmd: |
           set -o pipefail

@@ -4,7 +4,7 @@
   gather_facts: no
   become: yes
   vars:
-    action: "start"
+    node_action: "start"
 
   tasks:
     - name: Gather VM names from inventory
@@ -17,7 +17,7 @@
           set -o pipefail
           virsh start {{ item }}
       loop: "{{ vm_names }}"
-      when: action == "start"
+      when: node_action == "start"
 
     - name: Shutdown VMs using virsh
       ansible.builtin.shell:
@@ -25,4 +25,4 @@
           set -o pipefail
           virsh shutdown {{ item }}
       loop: "{{ vm_names }}"
-      when: action == "shutdown"
+      when: node_action == "shutdown"

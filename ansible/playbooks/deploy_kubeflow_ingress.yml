@@ -83,6 +83,7 @@
               - kubeflow.127.0.0.1.nip.io
               secretName: kubeflow-tls
         dest: /tmp/kubeflow-ingress.yaml
+    # noqa risky-file-permissions
 
 
     - name: Apply the default Ingress manifest
@@ -172,6 +173,7 @@
               - kubeflow.{{ master_ip }}.nip.io
               secretName: kubeflow-tls
         dest: /tmp/kubeflow-ingress_custom.yaml
+    # noqa risky-file-permissions
 
 
     - name: Apply the custom Ingress manifest

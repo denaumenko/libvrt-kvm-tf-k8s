@@ -8,6 +8,7 @@
       ansible.builtin.git:
         repo: https://github.com/kubeflow/manifests.git
         dest: /home/{{ ansible_user }}/manifests
+        version: "{{ kubeflow_version }}"
 
     - name: Apply Cert-Manager Base Configuration
       when: resolved_action in ["cert-manager", "all"]

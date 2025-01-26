@@ -74,6 +74,10 @@ variable "go_version" {
   default = "1.23/stable"
 }
 
+variable "kubeflow_version" {
+  default = "master"
+}
+
 variable "kustomize_version" {
   default = "latest/stable"
 }

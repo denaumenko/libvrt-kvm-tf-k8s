@@ -58,6 +58,7 @@ ansible_ssh_private_key_file=${data.local_file.ssh_key.filename}
 microk8s_version=${var.microk8s_version}
 go_version=${var.go_version}
 kustomize_version=${var.kustomize_version}
+kubeflow_version=${var.kubeflow_version}
 EOF
 }
 

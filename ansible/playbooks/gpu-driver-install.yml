@@ -9,8 +9,9 @@
         update_cache: yes
 
     - name: Install NVIDIA proprietary 535 driver
-      shell: |
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-driver-535 nvidia-dkms-535
+      ansible.builtin.shell:
+        cmd: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-driver-535 nvidia-dkms-535
       register: install_result
       ignore_errors: yes
 
@@ -25,8 +26,9 @@
 
 
     - name: Check if NVIDIA driver is installed successfully
-      shell: |
-        nvidia-smi
+      ansible.builtin.shell:
+        cmd: |
+          nvidia-smi
       register: nvidia_smi_output
       failed_when: "'NVIDIA' not in nvidia_smi_output.stdout"
       changed_when: false

@@ -3,12 +3,14 @@
   become: true
   tasks:
     - name: Install Go via Snap
-      shell: |
-        sudo snap install go --channel={{ go_version }} --classic
+      ansible.builtin.shell:
+        cmd: |
+          sudo snap install go --channel={{ go_version }} --classic
 
     - name: Verify Go Installation
-      shell: |
-        go version
+      ansible.builtin.shell:
+        cmd: |
+          go version
       register: go_version
       changed_when: false
 
@@ -16,12 +18,14 @@
         var: go_version.stdout
 
     - name: Install Kustomize via Snap
-      shell: |
-        sudo snap install kustomize --channel={{ kustomize_version }} --classic
+      ansible.builtin.shell:
+        cmd: |
+          sudo snap install kustomize --channel={{ kustomize_version }} --classic
 
     - name: Verify Kustomize Installation
-      shell: |
-        snap list kustomize
+      ansible.builtin.shell:
+        cmd: |
+          snap list kustomize
       register: kustomize_version
       changed_when: false
 

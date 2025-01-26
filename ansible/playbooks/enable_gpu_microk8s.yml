@@ -18,7 +18,9 @@
           {{ helm_repo_add_result.stderr | default('No errors') }}
 
     - name: Update NVIDIA Helm repository
-      shell: microk8s helm repo update nvidia
+      ansible.builtin.shell:
+        cmd: |
+          microk8s helm repo update nvidia
       register: helm_repo_update_result
       ignore_errors: true
 
@@ -32,7 +34,9 @@
           {{ helm_repo_update_result.stderr | default('No errors') }}
 
     - name: Enable GPU addon in MicroK8s
-      shell: microk8s enable nvidia
+      ansible.builtin.shell:
+        cmd: |
+          microk8s enable nvidia
       register: gpu_enable_result
       ignore_errors: true
 
@@ -46,15 +50,18 @@
           {{ gpu_enable_result.stderr | default('No errors') }}
 
     - name: Wait for NVIDIA operator validator pod to initialize
-      shell: |
-        microk8s kubectl get pod -n gpu-operator-resources -l app=nvidia-operator-validator -o jsonpath="{.items[0].status.phase}"
+      ansible.builtin.shell:
+        cmd: |
+          microk8s kubectl get pod -n gpu-operator-resources -l app=nvidia-operator-validator -o jsonpath="{.items[0].status.phase}"
       register: pod_status
       retries: 20
       delay: 30
       until: pod_status.stdout == "Running"
 
     - name: Check logs of NVIDIA operator validator
-      shell: microk8s kubectl logs -n gpu-operator-resources -lapp=nvidia-operator-validator -c nvidia-operator-validator
+      ansible.builtin.shell:
+        cmd: |
+          microk8s kubectl logs -n gpu-operator-resources -lapp=nvidia-operator-validator -c nvidia-operator-validator
       register: validator_logs
       ignore_errors: true
 
@@ -68,21 +75,22 @@
           {{ validator_logs.stderr | default('No errors') }}
 
     - name: Apply CUDA vector add Pod manifest
-      shell: |
-        microk8s kubectl apply -f - <<EOF
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          name: cuda-vector-add
-        spec:
-          restartPolicy: OnFailure
-          containers:
-            - name: cuda-vector-add
-              image: "k8s.gcr.io/cuda-vector-add:v0.1"
-              resources:
-                limits:
-                  nvidia.com/gpu: 1
-        EOF
+      ansible.builtin.shell:
+        cmd: |
+          microk8s kubectl apply -f - <<EOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: cuda-vector-add
+          spec:
+            restartPolicy: OnFailure
+            containers:
+              - name: cuda-vector-add
+                image: "k8s.gcr.io/cuda-vector-add:v0.1"
+                resources:
+                  limits:
+                    nvidia.com/gpu: 1
+          EOF
       register: pod_apply_result
       ignore_errors: true
 
@@ -96,15 +104,18 @@
           {{ pod_apply_result.stderr | default('No errors') }}
 
     - name: Wait for CUDA vector add pod to complete
-      shell: |
-        microk8s kubectl get pod cuda-vector-add -o jsonpath="{.status.phase}"
+      ansible.builtin.shell:
+        cmd: |
+          microk8s kubectl get pod cuda-vector-add -o jsonpath="{.status.phase}"
       register: cuda_pod_status
       retries: 20
       delay: 30
       until: cuda_pod_status.stdout == "Succeeded"
 
     - name: Check logs of CUDA vector add pod
-      shell: microk8s kubectl logs cuda-vector-add
+      ansible.builtin.shell:
+        cmd: |
+          microk8s kubectl logs cuda-vector-add
       register: cuda_vector_add_logs
       ignore_errors: true
 
@@ -118,7 +129,9 @@
           {{ cuda_vector_add_logs.stderr | default('No errors') }}
 
     - name: Display GPU info of nodes
-      shell: kubectl get nodes -o=custom-columns=NAME:.metadata.name,GPUs:.status.capacity.'nvidia\.com/gpu'
+      ansible.builtin.shell:
+        cmd: |
+          kubectl get nodes -o=custom-columns=NAME:.metadata.name,GPUs:.status.capacity.'nvidia\.com/gpu'
       register: gpu_nodes_info
       ignore_errors: true
 

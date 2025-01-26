@@ -7,13 +7,11 @@
 
   tasks:
     - name: Label master node
-      command: >
+      ansible.builtin.command: >
         kubectl label node {{ item }} node-role.kubernetes.io/master=master
       loop: "{{ master_nodes }}"
-      ignore_errors: true
 
     - name: Label worker nodes
-      command: >
+      ansible.builtin.command: >
         kubectl label node {{ item }} node-role.kubernetes.io/worker=worker
       loop: "{{ worker_nodes }}"
-      ignore_errors: true

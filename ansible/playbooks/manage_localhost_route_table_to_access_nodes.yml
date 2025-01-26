@@ -39,7 +39,6 @@
           set -o pipefail
           ip route add {{ item }}/32 dev {{ clean_wifi_interface_name }} metric {{ metric }}
       loop: "{{ target_ips }}"
-      ignore_errors: yes  # Avoid failing if the route already exists
 
     - name: Manage IP routes based on node_action
       when: node_action == "remove"
@@ -48,4 +47,3 @@
           set -o pipefail
           ip route del {{ item }}/32 dev {{ clean_wifi_interface_name }}
       loop: "{{ target_ips }}"
-      ignore_errors: yes  # Avoid failing if the route does not exist

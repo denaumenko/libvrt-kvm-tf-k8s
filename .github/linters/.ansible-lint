@@ -1,0 +1,10 @@
+# .ansible-lint
+
+skip_rules:
+  - "ANSIBLE0011"  # Ignore undefined variables errors
+  - "ANSIBLE0013"  # Ignore undefined variable in hosts
+  - "ANSIBLE0014"  # Ignore undefined variables in playbook hosts
+
+skip_list:
+  - "role-name" # Skip role name checks
+  - "no-unknown-variables" # Skip undefined variables checks

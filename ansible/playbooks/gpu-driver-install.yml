@@ -3,6 +3,7 @@
   hosts: "{{ groups['microk8s_WORKERS'][3] }}" # noqa: ignore-errors ansible-lint[undefined-variable]
   become: yes
   tasks:
+    #noqa: ignore-errors ansible-lint[undefined-variable]
 
     - name: Update apt repository
       apt:

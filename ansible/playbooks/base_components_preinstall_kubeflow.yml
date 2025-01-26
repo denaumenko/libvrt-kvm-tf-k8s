@@ -4,100 +4,117 @@
   vars:
     resolved_action: "{{ action | default('all') }}"
   tasks:
-
-
     - name: Clone Kubeflow Manifests Repository
-      git:
+      ansible.builtin.git:
         repo: https://github.com/kubeflow/manifests.git
         dest: /home/{{ ansible_user }}/manifests
 
-
     - name: Apply Cert-Manager Base Configuration
       when: resolved_action in ["cert-manager", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kustomize build manifests/common/cert-manager/base | kubectl apply -f -
         kustomize build manifests/common/cert-manager/kubeflow-issuer/base | kubectl apply -f -
       register: cert_manager_apply
       changed_when: cert_manager_apply.changed
-    - debug: msg="{{ cert_manager_apply.stdout | default('No stdout captured') }}"
+      failed_when: cert_manager_apply.rc != 0
 
+    - name: Debug Cert-Manager Apply Output
+      debug: msg="{{ cert_manager_apply.stdout | default('No stdout captured') }}"
 
     - name: Wait for Cert-Manager Pods to be Ready
       when: resolved_action in ["cert-manager", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
       register: wait_cert_manager_pods_apply
-    - debug: msg="{{ wait_cert_manager_pods_apply.stdout | default('No stdout captured') }}"
+      failed_when: wait_cert_manager_pods_apply.rc != 0
 
+    - name: Debug Wait Cert-Manager Pods Output
+      debug: msg="{{ wait_cert_manager_pods_apply.stdout | default('No stdout captured') }}"
 
     - name: Verify Cert-Manager Endpoints
       when: resolved_action in ["cert-manager", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kubectl wait --for=jsonpath='{.subsets[0].addresses[0].targetRef.kind}'=Pod endpoints -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
       register: verify_cert_manager_endpoints_apply
-    - debug: msg="{{ verify_cert_manager_endpoints_apply.stdout | default('No stdout captured') }}"
+      failed_when: verify_cert_manager_endpoints_apply.rc != 0
 
+    - name: Debug Verify Cert-Manager Endpoints Output
+      debug: msg="{{ verify_cert_manager_endpoints_apply.stdout | default('No stdout captured') }}"
 
     - name: Installing Istio configured with external authorization...
       when: resolved_action in ["istio", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kustomize build manifests/common/istio-1-24/istio-crds/base | kubectl apply -f -
         kustomize build manifests/common/istio-1-24/istio-namespace/base | kubectl apply -f -
         kustomize build manifests/common/istio-1-24/istio-install/overlays/oauth2-proxy | kubectl apply -f -
       register: istio_install
       changed_when: istio_install.changed
-    - debug: msg="{{ istio_install.stdout | default('No stdout captured') }}"
+      failed_when: istio_install.rc != 0
 
+    - name: Debug Istio Install Output
+      debug: msg="{{ istio_install.stdout | default('No stdout captured') }}"
 
     - name: Wait for all Istio Pods to become ready
       when: resolved_action in ["istio", "all"]
-      shell: |
+      ansible.builtin.shell: |
         echo "Waiting for all Istio Pods to become ready..."
         kubectl wait --for=condition=Ready pods --all -n istio-system --timeout 300s
       register: wait_istio_pods
-    - debug: msg="{{ wait_istio_pods.stdout | default('No stdout captured') }}"
+      failed_when: wait_istio_pods.rc != 0
 
+    - name: Debug Wait Istio Pods Output
+      debug: msg="{{ wait_istio_pods.stdout | default('No stdout captured') }}"
 
     - name: Installing oauth2-proxy...
       when: resolved_action in ["oauth2", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kustomize build manifests/common/oauth2-proxy/overlays/m2m-dex-only/ | kubectl apply -f -
       register: oauth2_proxy_install
       changed_when: oauth2_proxy_install.changed
-    - debug: msg="{{ oauth2_proxy_install.stdout | default('No stdout captured') }}"
+      failed_when: oauth2_proxy_install.rc != 0
+
+    - name: Debug oauth2-proxy Install Output
+      debug: msg="{{ oauth2_proxy_install.stdout | default('No stdout captured') }}"
 
     - name: Wait for all oauth2-proxy Pods to become ready...
       when: resolved_action in ["oauth2", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kubectl wait --for=condition=ready pod -l 'app.kubernetes.io/name=oauth2-proxy' --timeout=180s -n oauth2-proxy
       register: wait_oauth2_proxy_pods
-    - debug: msg="{{ wait_oauth2_proxy_pods.stdout | default('No stdout captured') }}"
+      failed_when: wait_oauth2_proxy_pods.rc != 0
 
+    - name: Debug Wait oauth2-proxy Pods Output
+      debug: msg="{{ wait_oauth2_proxy_pods.stdout | default('No stdout captured') }}"
 
     - name: Installing Dex...
       when: resolved_action in ["dex", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kustomize build manifests/common/dex/overlays/oauth2-proxy | kubectl apply -f -
       register: dex_install
       changed_when: dex_install.changed
       failed_when: dex_install.rc != 0
-    - debug: msg="{{ dex_install.stdout | default('No stdout captured') }}"
+
+    - name: Debug Dex Install Output
+      debug: msg="{{ dex_install.stdout | default('No stdout captured') }}"
 
     - name: Wait for all Dex Pods to become ready...
       when: resolved_action in ["dex", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kubectl wait --for=condition=ready pods --all --timeout=180s -n auth
       register: wait_dex_pods
-    - debug: msg="{{ wait_dex_pods.stdout | default('No stdout captured') }}"
+      failed_when: wait_dex_pods.rc != 0
 
+    - name: Debug Wait Dex Pods Output
+      debug: msg="{{ wait_dex_pods.stdout | default('No stdout captured') }}"
 
     - name: Installing Knative...
       when: resolved_action in ["knative", "all"]
-      shell: |
+      ansible.builtin.shell: |
         kustomize build manifests/common/knative/knative-serving/overlays/gateways | kubectl apply -f -
         kustomize build manifests/common/istio-1-24/cluster-local-gateway/base | kubectl apply -f -
       register: knative_install
       changed_when: knative_install.changed
       failed_when: knative_install.rc != 0
-    - debug: msg="{{ knative_install.stdout | default('No stdout captured') }}"
 
+    - name: Debug Knative Install Output
+      debug: msg="{{ knative_install.stdout | default('No stdout captured') }}"

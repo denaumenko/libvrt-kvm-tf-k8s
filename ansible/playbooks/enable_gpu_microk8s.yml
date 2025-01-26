@@ -9,7 +9,7 @@
       ignore_errors: true
 
     - name: Print NVIDIA Helm Repo Add Output
-      debug:
+      ansible.builtin.debug:
         msg: |
           NVIDIA Helm Repo Add Output:
           {{ helm_repo_add_result.stdout | default('No output') }}
@@ -25,7 +25,7 @@
       ignore_errors: true
 
     - name: Print NVIDIA Helm Repo Update Output
-      debug:
+      ansible.builtin.debug:
         msg: |
           NVIDIA Helm Repo Update Output:
           {{ helm_repo_update_result.stdout | default('No output') }}
@@ -41,7 +41,7 @@
       ignore_errors: true
 
     - name: Print GPU Addon Enablement Output
-      debug:
+      ansible.builtin.debug:
         msg: |
           GPU Addon Enablement Output:
           {{ gpu_enable_result.stdout | default('No output') }}
@@ -66,7 +66,7 @@
       ignore_errors: true
 
     - name: Print NVIDIA Operator Validator Logs
-      debug:
+      ansible.builtin.debug:
         msg: |
           NVIDIA Operator Validator Logs:
           {{ validator_logs.stdout | default('No logs available') }}
@@ -95,7 +95,7 @@
       ignore_errors: true
 
     - name: Print CUDA Vector Add Pod Application Output
-      debug:
+      ansible.builtin.debug:
         msg: |
           CUDA Vector Add Pod Application Output:
           {{ pod_apply_result.stdout | default('No output') }}
@@ -120,7 +120,7 @@
       ignore_errors: true
 
     - name: Print CUDA Vector Add Pod Logs
-      debug:
+      ansible.builtin.debug:
         msg: |
           CUDA Vector Add Logs:
           {{ cuda_vector_add_logs.stdout | default('No logs available') }}
@@ -136,7 +136,7 @@
       ignore_errors: true
 
     - name: Print GPU Info of Nodes
-      debug:
+      ansible.builtin.debug:
         msg: |
           GPU Info of Nodes:
           {{ gpu_nodes_info.stdout | default('No GPU information available') }}

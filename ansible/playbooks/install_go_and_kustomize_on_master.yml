@@ -14,7 +14,7 @@
       register: go_version
       changed_when: false
 
-    - debug:
+    - ansible.builtin.debug:
         var: go_version.stdout
 
     - name: Install Kustomize via Snap
@@ -29,5 +29,5 @@
       register: kustomize_version
       changed_when: false
 
-    - debug:
+    - ansible.builtin.debug:
         var: kustomize_version.stdout

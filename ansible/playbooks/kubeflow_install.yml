@@ -18,7 +18,8 @@
         kustomize build manifests/common/istio-1-24/kubeflow-istio-resources/base | kubectl apply -f -
       register: kubeflow_base_resources_apply
       changed_when: kubeflow_base_resources_apply.changed
-    - debug: msg="{{ kubeflow_base_resources_apply.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_base_resources_apply.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Kubeflow Pipelines
@@ -26,7 +27,8 @@
         kustomize build manifests/apps/pipeline/upstream/env/cert-manager/platform-agnostic-multi-user | kubectl apply -f -
       register: kubeflow_pipelines_deploy
       changed_when: kubeflow_pipelines_deploy.changed
-    - debug: msg="{{ kubeflow_pipelines_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_pipelines_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Patch Kubeflow Pipelines(Disable GKE METADATA)
@@ -36,7 +38,8 @@
       become: yes
       become_user: root
       register: patch_kfp
-    - debug: msg="{{ patch_kfp.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ patch_kfp.stdout | default('No stdout captured') }}"
 
 
     - name: Configure PVC for Minio
@@ -65,7 +68,8 @@
         EOF
       register: configure_minio_pvc_result
       ignore_errors: true
-    - debug: msg="{{ configure_minio_pvc_result.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ configure_minio_pvc_result.stdout | default('No stdout captured') }}"
 
     - name: Configure PVC for MySQL
       shell: |
@@ -93,7 +97,8 @@
         EOF
       register: configure_my_sql_pvc_result
       ignore_errors: true
-    - debug: msg="{{ configure_my_sql_pvc_result.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ configure_my_sql_pvc_result.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy KServe
@@ -102,7 +107,8 @@
         kustomize build manifests/contrib/kserve/models-web-app/overlays/kubeflow | kubectl apply -f -
       register: kubeflow_kserve_deploy
       changed_when: kubeflow_kserve_deploy.changed
-    - debug: msg="{{ kubeflow_kserve_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_kserve_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Katib
@@ -110,7 +116,8 @@
         kustomize build manifests/apps/katib/upstream/installs/katib-with-kubeflow | kubectl apply -f -
       register: kubeflow_katib_deploy
       changed_when: kubeflow_katib_deploy.changed
-    - debug: msg="{{ kubeflow_katib_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_katib_deploy.stdout | default('No stdout captured') }}"
 
     - name: Configure PVC for Katib DB manager
       shell: |
@@ -137,7 +144,7 @@
       register: configure_katib_db_manager_pvc_result
       ignore_errors: true
 
-    - debug:
+    - ansible.builtin.debug:
         msg: "{{ configure_katib_db_manager_pvc_result.stdout | default('No stdout captured') }}"
 
 
@@ -147,7 +154,8 @@
         kustomize build manifests/apps/centraldashboard/overlays/oauth2-proxy | kubectl apply -f -
       register: kubeflow_ui_deploy
       changed_when: kubeflow_ui_deploy.changed
-    - debug: msg="{{ kubeflow_ui_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_ui_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Admission Webhook
@@ -155,7 +163,8 @@
         kustomize build manifests/apps/admission-webhook/upstream/overlays/cert-manager | kubectl apply -f -
       register: kubeflow_admission_webhook_deploy
       changed_when: kubeflow_admission_webhook_deploy.changed
-    - debug: msg="{{ kubeflow_admission_webhook_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_admission_webhook_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Notebook Controller and Jupyter Web App official Kubeflow components
@@ -164,7 +173,8 @@
         kustomize build manifests/apps/jupyter/jupyter-web-app/upstream/overlays/istio | kubectl apply -f -
       register: kubeflow_notebook_controller_deploy
       changed_when: kubeflow_notebook_controller_deploy.changed
-    - debug: msg="{{ kubeflow_notebook_controller_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_notebook_controller_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy PVC Viewer Controller
@@ -172,14 +182,16 @@
         kustomize build manifests/apps/pvcviewer-controller/upstream/base | kubectl apply -f -
       register: kubeflow_pvc_viewer_deploy
       changed_when: kubeflow_pvc_viewer_deploy.changed
-    - debug: msg="{{ kubeflow_pvc_viewer_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_pvc_viewer_deploy.stdout | default('No stdout captured') }}"
 
     - name: Deploy Profiles + KFAM
       shell: |
         kustomize build manifests/apps/profiles/upstream/overlays/kubeflow | kubectl apply -f -
       register: kubeflow_profiles_kfam_deploy
       changed_when: kubeflow_profiles_kfam_deploy.changed
-    - debug: msg="{{ kubeflow_profiles_kfam_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_profiles_kfam_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Volumes Web Application
@@ -187,7 +199,8 @@
         kustomize build manifests/apps/volumes-web-app/upstream/overlays/istio | kubectl apply -f -
       register: kubeflow_volumes_webapp_deploy
       changed_when: kubeflow_volumes_webapp_deploy.changed
-    - debug: msg="{{ kubeflow_volumes_webapp_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_volumes_webapp_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Tensorboard Web App and Tensorboard Controller
@@ -196,7 +209,8 @@
         kustomize build manifests/apps/tensorboard/tensorboard-controller/upstream/overlays/kubeflow | kubectl apply -f -
       register: kubeflow_tensorboard_deploy
       changed_when: kubeflow_tensorboard_deploy.changed
-    - debug: msg="{{ kubeflow_tensorboard_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_tensorboard_deploy.stdout | default('No stdout captured') }}"
 
 
     - name: Deploy Training Operator
@@ -204,14 +218,16 @@
         kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply --server-side --force-conflicts -f -
       register: kubeflow_training_operator_deploy
       changed_when: kubeflow_training_operator_deploy.changed
-    - debug: msg="{{ kubeflow_training_operator_deploy.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_training_operator_deploy.stdout | default('No stdout captured') }}"
 
     - name: Create a new namespace for the default user
       shell: |
         kustomize build manifests/common/user-namespace/base | kubectl apply -f -
       register: create_default_user_namespace
       changed_when: create_default_user_namespace.changed
-    - debug: msg="{{ create_default_user_namespace.stdout | default('No stdout captured') }}"
+    - ansible.builtin.debug:
+        msg: "{{ create_default_user_namespace.stdout | default('No stdout captured') }}"
 
 
     - name: Verify all Kubeflow-related Pods are ready
@@ -225,4 +241,5 @@
         kubectl get pods -n kubeflow-user-example-com
       register: verify_kubeflow_pods_after_installation
       failed_when: verify_kubeflow_pods_after_installation is failed
-    - debug: msg="{{ verify_kubeflow_pods_after_installation.stdout }}"
+    - ansible.builtin.debug:
+        msg: "{{ verify_kubeflow_pods_after_installation.stdout }}"

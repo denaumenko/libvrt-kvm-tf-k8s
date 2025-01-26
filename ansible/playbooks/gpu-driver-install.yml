@@ -15,7 +15,7 @@
       register: install_result
       ignore_errors: yes
 
-    - debug:
+    - ansible.builtin.debug:
         msg: "NVIDIA driver installation output: {{ install_result.stdout_lines }}"
 
     - name: Reboot the system to apply changes
@@ -33,5 +33,5 @@
       failed_when: "'NVIDIA' not in nvidia_smi_output.stdout"
       changed_when: false
 
-    - debug:
+    - ansible.builtin.debug:
         msg: "NVIDIA-SMI output: {{ nvidia_smi_output.stdout_lines }}"

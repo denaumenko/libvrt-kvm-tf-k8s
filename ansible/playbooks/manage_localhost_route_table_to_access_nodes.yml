@@ -27,7 +27,7 @@
         clean_wifi_interface_name: "{{ wifi_interface_name.stdout | trim }}"
 
     - name: Debug the cleaned Wi-Fi interface name (optional)
-      debug:
+      ansible.builtin.debug:
         msg: "The detected Wi-Fi interface is: {{ clean_wifi_interface_name }}"
 
     - name: Manage IP routes based on action

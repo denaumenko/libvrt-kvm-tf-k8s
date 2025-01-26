@@ -52,6 +52,7 @@
       when: resolved_action in ["istio", "all"]
       ansible.builtin.shell:
         cmd: |
+          set -o pipefail
           kustomize build manifests/common/istio-1-24/istio-crds/base | kubectl apply -f -
           kustomize build manifests/common/istio-1-24/istio-namespace/base | kubectl apply -f -
           kustomize build manifests/common/istio-1-24/istio-install/overlays/oauth2-proxy | kubectl apply -f -
@@ -80,6 +81,7 @@
       when: resolved_action in ["oauth2", "all"]
       ansible.builtin.shell:
         cmd: |
+          set -o pipefail
           kustomize build manifests/common/oauth2-proxy/overlays/m2m-dex-only/ | kubectl apply -f -
       register: oauth2_proxy_install
       changed_when: oauth2_proxy_install.changed
@@ -105,6 +107,7 @@
       when: resolved_action in ["dex", "all"]
       ansible.builtin.shell:
         cmd: |
+          set -o pipefail
           kustomize build manifests/common/dex/overlays/oauth2-proxy | kubectl apply -f -
       register: dex_install
       changed_when: dex_install.changed
@@ -118,6 +121,7 @@
       when: resolved_action in ["dex", "all"]
       ansible.builtin.shell:
         cmd: |
+          set -o pipefail
           kubectl wait --for=condition=ready pods --all --timeout=180s -n auth
       register: wait_dex_pods
       failed_when: wait_dex_pods.rc != 0

@@ -12,6 +12,12 @@
         dest: /home/{{ ansible_user }}/manifests
         version: "{{ kubeflow_version }}"
 
+    - name: Clone Kubeflow Model Registry Repository
+      ansible.builtin.git:
+        repo: https://github.com/kubeflow/model-registry.git
+        dest: /home/{{ ansible_user }}/manifests
+        version: "{{ kubeflow_model_registry_version }}"
+
     - name: Apply Cert-Manager Base Configuration
       when: resolved_action in ["cert-manager", "all"]
       ansible.builtin.shell:
@@ -417,6 +423,29 @@
     - ansible.builtin.debug:
         msg: "{{ create_default_user_namespace.stdout | default('No stdout captured') }}"
 
+    - name: Deploy Model Registry
+      when: resolved_action in ["kubeflow_model_registry", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          kubectl apply -k model-registry/manifests/kustomize/overlays/db
+          kubectl apply -k model-registry/manifests/kustomize/options/istio
+          kubectl apply -k model-registry/manifests/kustomize/options/csi
+      register: kubeflow_model_registry_deploy
+      changed_when: kubeflow_model_registry_deploy.changed
+    - ansible.builtin.debug:
+        msg: "{{ kubeflow_model_registry_deploy.stdout | default('No stdout captured') }}"
+
+    - name: Wait for all Model Registry to become ready...
+      when: resolved_action in ["kubeflow_model_registry", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=1m
+          kubectl logs -n kubeflow deployment/model-registry-deployment
+      register: wait_model_registry_pods
+      failed_when: wait_model_registry_pods.rc != 0
+
+    - ansible.builtin.debug:
+        msg: "{{ wait_model_registry_pods.stdout | default('No stdout captured')  }}"
 
     - name: Verify all Kubeflow-related Pods are ready
       when: resolved_action in ["all"]
@@ -433,4 +462,4 @@
       register: verify_kubeflow_pods_after_installation
       failed_when: verify_kubeflow_pods_after_installation is failed
     - ansible.builtin.debug:
-        msg: "{{ verify_kubeflow_pods_after_installation.stdout }}"
+        msg: "{{ verify_kubeflow_pods_after_installation.stdout | default('No stdout captured')  }}"

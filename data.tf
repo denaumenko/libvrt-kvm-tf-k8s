@@ -59,6 +59,7 @@ microk8s_version=${var.microk8s_version}
 go_version=${var.go_version}
 kustomize_version=${var.kustomize_version}
 kubeflow_version=${var.kubeflow_version}
+kubeflow_model_registry_version=${var.kubeflow_model_registry_version}
 EOF
 }
 

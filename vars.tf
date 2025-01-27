@@ -78,6 +78,10 @@ variable "kubeflow_version" {
   default = "master"
 }
 
+variable "kubeflow_model_registry_version" {
+  default = "v0.2.10"
+}
+
 variable "kustomize_version" {
   default = "latest/stable"
 }

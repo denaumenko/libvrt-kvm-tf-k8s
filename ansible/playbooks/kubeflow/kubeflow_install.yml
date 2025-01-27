@@ -1,6 +1,8 @@
 ---
 - name: Deploy Kubeflow on k8s cluster.
   hosts: microk8s_HA
+  vars:
+    resolved_action: "{{ action | default('all') }}"
   tasks:
 
 
@@ -10,8 +12,143 @@
         dest: /home/{{ ansible_user }}/manifests
         version: "{{ kubeflow_version }}"
 
+    - name: Apply Cert-Manager Base Configuration
+      when: resolved_action in ["cert-manager", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          kustomize build manifests/common/cert-manager/base
+          kustomize build manifests/common/cert-manager/kubeflow-issuer/base
+      register: cert_manager_apply
+      changed_when: cert_manager_apply.changed
+      failed_when: cert_manager_apply.rc != 0
+
+    - name: Debug Cert-Manager Apply Output
+      ansible.builtin.debug:
+        msg: "{{ cert_manager_apply.stdout | default('No stdout captured') }}"
+
+    - name: Wait for Cert-Manager Pods to be Ready
+      when: resolved_action in ["cert-manager", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
+      register: wait_cert_manager_pods_apply
+      failed_when: wait_cert_manager_pods_apply.rc != 0
+
+    - name: Debug Wait Cert-Manager Pods Output
+      ansible.builtin.debug:
+        msg: "{{ wait_cert_manager_pods_apply.stdout | default('No stdout captured') }}"
+
+    - name: Verify Cert-Manager Endpoints
+      when: resolved_action in ["cert-manager", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=jsonpath='{.subsets[0].addresses[0].targetRef.kind}'=Pod endpoints -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
+      register: verify_cert_manager_endpoints_apply
+      failed_when: verify_cert_manager_endpoints_apply.rc != 0
+
+    - name: Debug Verify Cert-Manager Endpoints Output
+      ansible.builtin.debug:
+        msg: "{{ verify_cert_manager_endpoints_apply.stdout | default('No stdout captured') }}"
+
+    - name: Installing Istio configured with external authorization...
+      when: resolved_action in ["istio", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          kustomize build manifests/common/istio-1-24/istio-crds/base | kubectl apply -f -
+          kustomize build manifests/common/istio-1-24/istio-namespace/base | kubectl apply -f -
+          kustomize build manifests/common/istio-1-24/istio-install/overlays/oauth2-proxy | kubectl apply -f -
+      register: istio_install
+      changed_when: istio_install.changed
+      failed_when: istio_install.rc != 0
+
+    - name: Debug Istio Install Output
+      ansible.builtin.debug:
+        msg: "{{ istio_install.stdout | default('No stdout captured') }}"
+
+    - name: Wait for all Istio Pods to become ready
+      when: resolved_action in ["istio", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          echo "Waiting for all Istio Pods to become ready..."
+          kubectl wait --for=condition=Ready pods --all -n istio-system --timeout 300s
+      register: wait_istio_pods
+      failed_when: wait_istio_pods.rc != 0
+
+    - name: Debug Wait Istio Pods Output
+      ansible.builtin.debug:
+        msg: "{{ wait_istio_pods.stdout | default('No stdout captured') }}"
+
+    - name: Installing oauth2-proxy...
+      when: resolved_action in ["oauth2", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          kustomize build manifests/common/oauth2-proxy/overlays/m2m-dex-only/ | kubectl apply -f -
+      register: oauth2_proxy_install
+      changed_when: oauth2_proxy_install.changed
+      failed_when: oauth2_proxy_install.rc != 0
+
+    - name: Debug oauth2-proxy Install Output
+      ansible.builtin.debug:
+        msg: "{{ oauth2_proxy_install.stdout | default('No stdout captured') }}"
+
+    - name: Wait for all oauth2-proxy Pods to become ready...
+      when: resolved_action in ["oauth2", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          kubectl wait --for=condition=ready pod -l 'app.kubernetes.io/name=oauth2-proxy' --timeout=180s -n oauth2-proxy
+      register: wait_oauth2_proxy_pods
+      failed_when: wait_oauth2_proxy_pods.rc != 0
+
+    - name: Debug Wait oauth2-proxy Pods Output
+      ansible.builtin.debug:
+        msg: "{{ wait_oauth2_proxy_pods.stdout | default('No stdout captured') }}"
+
+    - name: Installing Dex...
+      when: resolved_action in ["dex", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          kustomize build manifests/common/dex/overlays/oauth2-proxy | kubectl apply -f -
+      register: dex_install
+      changed_when: dex_install.changed
+      failed_when: dex_install.rc != 0
+
+    - name: Debug Dex Install Output
+      ansible.builtin.debug:
+        msg: "{{ dex_install.stdout | default('No stdout captured') }}"
+
+    - name: Wait for all Dex Pods to become ready...
+      when: resolved_action in ["dex", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          kubectl wait --for=condition=ready pods --all --timeout=180s -n auth
+      register: wait_dex_pods
+      failed_when: wait_dex_pods.rc != 0
+
+    - name: Debug Wait Dex Pods Output
+      ansible.builtin.debug:
+        msg: "{{ wait_dex_pods.stdout | default('No stdout captured') }}"
+
+    - name: Installing Knative...
+      when: resolved_action in ["knative", "all"]
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          kustomize build manifests/common/knative/knative-serving/overlays/gateways | kubectl apply -f -
+          kustomize build manifests/common/istio-1-24/cluster-local-gateway/base | kubectl apply -f -
+      register: knative_install
+      changed_when: knative_install.changed
+      failed_when: knative_install.rc != 0
+
+    - name: Debug Knative Install Output
+      ansible.builtin.debug:
+        msg: "{{ knative_install.stdout | default('No stdout captured') }}"
 
     - name: Create Kubeflow Namespace, Apply Network Policies, create Kubeflow Roles, Deploy Kubeflow Istio Resources
+      when: resolved_action in ["base_resources", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -26,6 +163,7 @@
 
 
     - name: Deploy Kubeflow Pipelines
+      when: resolved_action in ["kfp", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -37,6 +175,7 @@
 
 
     - name: Patch Kubeflow Pipelines(Disable GKE METADATA)
+      when: resolved_action in ["kfp", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -50,6 +189,7 @@
 
 
     - name: Configure PVC for Minio
+      when: resolved_action in ["kfp", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -81,6 +221,7 @@
         msg: "{{ configure_minio_pvc_result.stdout | default('No stdout captured') }}"
 
     - name: Configure PVC for MySQL
+      when: resolved_action in ["kfp", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -113,6 +254,7 @@
 
 
     - name: Deploy KServe
+      when: resolved_action in ["kserve", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -125,6 +267,7 @@
 
 
     - name: Deploy Katib
+      when: resolved_action in ["katib", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -135,6 +278,7 @@
         msg: "{{ kubeflow_katib_deploy.stdout | default('No stdout captured') }}"
 
     - name: Configure PVC for Katib DB manager
+      when: resolved_action in ["katib", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -167,6 +311,7 @@
 
 
     - name: Deploy Central Dashboard
+      when: resolved_action in ["kubeflow_ui", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -178,6 +323,7 @@
 
 
     - name: Deploy Admission Webhook
+      when: resolved_action in ["admission_webhook", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -189,6 +335,7 @@
 
 
     - name: Deploy Notebook Controller and Jupyter Web App official Kubeflow components
+      when: resolved_action in ["notebook", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -201,6 +348,7 @@
 
 
     - name: Deploy PVC Viewer Controller
+      when: resolved_action in ["pvc_controller", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -211,6 +359,7 @@
         msg: "{{ kubeflow_pvc_viewer_deploy.stdout | default('No stdout captured') }}"
 
     - name: Deploy Profiles + KFAM
+      when: resolved_action in ["kubeflow_profiles", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -222,6 +371,7 @@
 
 
     - name: Deploy Volumes Web Application
+      when: resolved_action in ["volumes_web_app", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -233,6 +383,7 @@
 
 
     - name: Deploy Tensorboard Web App and Tensorboard Controller
+      when: resolved_action in ["tensorboard", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -245,6 +396,7 @@
 
 
     - name: Deploy Training Operator
+      when: resolved_action in ["kubeflow_training_operator", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -255,6 +407,7 @@
         msg: "{{ kubeflow_training_operator_deploy.stdout | default('No stdout captured') }}"
 
     - name: Create a new namespace for the default user
+      when: resolved_action in ["default_user", "all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
@@ -266,6 +419,7 @@
 
 
     - name: Verify all Kubeflow-related Pods are ready
+      when: resolved_action in ["all"]
       ansible.builtin.shell:
         cmd: |
           set -o pipefail

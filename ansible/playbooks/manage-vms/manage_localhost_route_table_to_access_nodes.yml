@@ -17,7 +17,6 @@
     - name: Get Wi-Fi interface name
       ansible.builtin.shell:
         cmd: |
-          set -o pipefail
           ip link show |
           grep -Eo '^[0-9]+: (wlp|wlan)[^:]*' |
           awk '{print $2}'
@@ -36,7 +35,6 @@
       when: node_action == "add"
       ansible.builtin.shell:
         cmd: |
-          set -o pipefail
           ip route add {{ item }}/32 dev {{ clean_wifi_interface_name }} metric {{ metric }}
       loop: "{{ target_ips }}"
 
@@ -44,6 +42,5 @@
       when: node_action == "remove"
       ansible.builtin.shell:
         cmd: |
-          set -o pipefail
           ip route del {{ item }}/32 dev {{ clean_wifi_interface_name }}
       loop: "{{ target_ips }}"

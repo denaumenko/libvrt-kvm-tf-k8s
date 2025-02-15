@@ -9,13 +9,11 @@
     - name: Shutdown the system
       ansible.builtin.shell:
         cmd: |
-          set -o pipefail
           /sbin/shutdown -h now
       when: node_action == "shutdown"
 
     - name: Reboot the system
       ansible.builtin.shell:
         cmd: |
-          set -o pipefail
           /sbin/reboot
       when: node_action == "restart"

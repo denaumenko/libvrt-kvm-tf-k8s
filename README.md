@@ -14,3 +14,7 @@
 
 
 [//]: # (11. ansible-playbook playbooks/kubeflow_install.yml --ask-become-pass)
+
+ansible-playbook playbooks/manage-vms/virsh-manage-vm.yml --extra-vars "node_action=start"  --ask-become-pass
+ansible-playbook playbooks/manage-vms/manage_localhost_route_table_to_access_nodes.yml --extra-vars "action=add" --ask-become-pass
+ansible-playbook playbooks/manage-vms/virsh-manage-vm.yml --extra-vars "node_action=shutdown"  --ask-become-pass

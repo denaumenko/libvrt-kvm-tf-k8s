@@ -1,0 +1,17 @@
+- name: Label Kubernetes Nodes
+  hosts: microk8s_HA
+  become: true
+  vars:
+    master_nodes: "{{ groups['microk8s_HA'] }}"
+    worker_nodes: "{{ groups['microk8s_WORKERS'] | map('regex_replace', '-terraform$', '') | list }}"
+
+  tasks:
+    - name: Label master node
+      ansible.builtin.command: >
+        kubectl label node {{ item }} node-role.kubernetes.io/master=master
+      loop: "{{ master_nodes }}"
+
+    - name: Label worker nodes
+      ansible.builtin.command: >
+        kubectl label node {{ item }} node-role.kubernetes.io/worker=worker
+      loop: "{{ worker_nodes }}"

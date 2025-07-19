@@ -1,0 +1,19 @@
+---
+- name: Manage system (Shutdown, Restart, and Check system information)
+  hosts: microk8s_WORKERS, microk8s_HA
+  become: yes
+  vars:
+    node_action: "restart"
+
+  tasks:
+    - name: Shutdown the system
+      ansible.builtin.shell:
+        cmd: |
+          /sbin/shutdown -h now
+      when: node_action == "shutdown"
+
+    - name: Reboot the system
+      ansible.builtin.shell:
+        cmd: |
+          /sbin/reboot
+      when: node_action == "restart"

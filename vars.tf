@@ -19,7 +19,7 @@ variable "ip_addressees_workers" {
 
 variable "libvirt_disk_path" {
   description = "path for libvirt pool"
-  default     = "/media/denys/VM/kvm-kubernetes"
+  default     = "/mnt/VM/kvm-kubernetes"
 }
 
 variable "master_hostname" {
@@ -54,12 +54,12 @@ variable "workers_vcpu" {
 
 variable "master_volume_size" {
   description = "Size of Disk space for master node in bytes."
-  default     = 107374182400
+  default     = 134217728000
 }
 
 variable "workers_volume_size" {
   description = "Size of Disk space for worker nodes in bytes."
-  default     = 107374182400
+  default     = 134217728000
 }
 
 variable "base_image" {
@@ -68,6 +68,22 @@ variable "base_image" {
 
 variable "microk8s_version" {
   default = "1.31/stable"
+}
+
+variable "go_version" {
+  default = "1.23/stable"
+}
+
+variable "kubeflow_version" {
+  default = "1.9/stable"
+}
+
+variable "kubeflow_model_registry_version" {
+  default = "v0.2.10"
+}
+
+variable "kustomize_version" {
+  default = "latest/stable"
 }
 
 variable "network_interface" {

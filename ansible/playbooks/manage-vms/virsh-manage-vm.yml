@@ -4,19 +4,23 @@
   gather_facts: no
   become: yes
   vars:
-    action: "start"
+    node_action: "start"
 
   tasks:
     - name: Gather VM names from inventory
-      set_fact:
+      ansible.builtin.set_fact:
         vm_names: "{{ groups['microk8s_WORKERS'] + groups['microk8s_HA'] }}"
 
     - name: Start VMs using virsh
-      shell: virsh start {{ item }}
+      ansible.builtin.shell:
+        cmd: |
+          /bin/bash -c "set -o pipefail; virsh start {{ item }}"
       loop: "{{ vm_names }}"
-      when: action == "start"
+      when: node_action == "start"
 
     - name: Shutdown VMs using virsh
-      shell: virsh shutdown {{ item }}
+      ansible.builtin.shell:
+        cmd: |
+          /bin/bash -c "set -o pipefail; virsh shutdown {{ item }}"
       loop: "{{ vm_names }}"
-      when: action == "shutdown"
+      when: node_action == "shutdown"

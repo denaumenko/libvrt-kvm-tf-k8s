@@ -4,6 +4,9 @@ resource "libvirt_domain" "k8s_master_1" {
   memory = var.master_memory
   vcpu   = var.master_vcpu
 
+  cpu {
+    mode = "host-passthrough"
+  }
 
   disk {
     volume_id = libvirt_volume.master.id
@@ -36,6 +39,9 @@ resource "libvirt_domain" "k8s_workers" {
   memory = var.workers_memory
   vcpu   = var.workers_vcpu
 
+  cpu {
+    mode = "host-passthrough"
+  }
 
   disk {
     volume_id = libvirt_volume.worker[count.index].id

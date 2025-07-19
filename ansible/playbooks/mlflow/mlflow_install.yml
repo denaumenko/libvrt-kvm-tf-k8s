@@ -1,0 +1,6 @@
+---
+- name: Deploy MLFlow on Microk8s cluster.
+  hosts: microk8s_HA
+  tasks:
+
+

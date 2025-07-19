@@ -1,0 +1,87 @@
+---
+- name: Deploy Kubeflow on Microk8s cluster.
+  hosts: microk8s_HA
+  tasks:
+
+    - name: Configure MicroK8s
+      ansible.builtin.shell:
+        cmd: |
+          sudo microk8s enable dns hostpath-storage metallb:10.64.140.43-10.64.140.49 rbac
+
+    - name: Verify MicroK8s Configuration
+      ansible.builtin.shell:
+        cmd: |
+          microk8s status
+      register: microk8s_configuration
+      changed_when: false
+
+    - ansible.builtin.debug:
+        var: microk8s_configuration.stdout
+
+    - name: Install JuJu via Snap
+      ansible.builtin.shell:
+        cmd: |
+          sudo snap install juju --channel=3.4/stable
+          mkdir -p ~/.local/share
+
+    - name: Verify Juju Installation
+      ansible.builtin.shell:
+        cmd: |
+          snap list juju
+      register: juju_version
+      changed_when: false
+
+    - ansible.builtin.debug:
+        var: juju_version.stdout
+
+    - name: Configure Juju
+      ansible.builtin.shell:
+        cmd: |
+          microk8s config | juju add-k8s my-k8s --client
+          juju bootstrap my-k8s uk8sx
+          juju add-model kubeflow
+
+    - name: Ensure max_user_instances is set
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        line: "fs.inotify.max_user_instances=1280"
+        state: present
+
+    - name: Ensure max_user_watches is set
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        line: "fs.inotify.max_user_watches=655360"
+        state: present
+
+    - name: Apply sysctl changes
+      ansible.builtin.command: sysctl -p
+      changed_when: true
+
+    - name: Deploy CKF
+      ansible.builtin.shell:
+        cmd: |
+          juju deploy kubeflow --trust --channel={{ kubeflow_version }}
+
+    - name: Verify CKF Configuration
+      ansible.builtin.shell:
+        cmd: |
+          juju status
+      register: ckf_configuration
+      changed_when: false
+
+    - ansible.builtin.debug:
+        var: ckf_configuration.stdout
+
+    - name: Configure Dashboard access
+      ansible.builtin.shell:
+        cmd: |
+          juju config dex-auth static-username=admin
+          juju config dex-auth static-password=admin
+          
+
+    - name: Verify Dashboard access
+      ansible.builtin.shell:
+        cmd: |
+          microk8s kubectl -n kubeflow get svc istio-ingressgateway-workload -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+      register: dashboard_configuration
+      changed_when: false
